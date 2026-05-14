@@ -7,13 +7,17 @@ import LanguageSwitcher from './LanguageSwitcher';
 import IconButton from '../ui/IconButton';
 import Avatar from '../ui/Avatar';
 
-// Compact header for inner pages (with title + back).
+// Pashu Mandi-style header. Solid brand-800 (the deepest emerald in our scale —
+// emotionally the closest substitute for the reference's deep maroon, kept since
+// the user wants to keep our emerald brand). The wordmark renders from i18n
+// `app_name`, which is Devanagari for mr/hi and Latin for en — matching the
+// reference's prominent Devanagari brand mark.
+
 function InnerHeader({ title, showBack, onBack }) {
   const navigate = useNavigate();
   const back = onBack || (() => navigate(-1));
-
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-brand-700 to-brand-600 shadow-sm">
+    <header className="sticky top-0 z-40 bg-brand-800 shadow-sm">
       <div className="flex items-center justify-between px-3 py-3">
         <div className="flex items-center gap-1 min-w-0">
           {showBack && (
@@ -39,32 +43,53 @@ InnerHeader.propTypes = {
   onBack: PropTypes.func,
 };
 
-// Default home header with logo and avatar.
-function HomeHeader() {
+function HomeHeader({ showSellCta }) {
   const navigate = useNavigate();
   const { tr } = useLanguage();
   const { user } = useSelector((s) => s.auth);
 
   return (
-    <header className="sticky top-0 z-40 bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 shadow-sm">
-      <div className="flex items-center justify-between px-4 py-3 gap-3">
+    <header className="sticky top-0 z-40 bg-brand-800 shadow-sm">
+      <div className="flex items-center justify-between px-4 py-2.5 gap-3">
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-2 group min-w-0"
           aria-label={tr('app_name')}
         >
-          <span className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-inner border border-white/20 transition-transform group-hover:scale-105">
-            🐄
+          {/* Logo mark — 36px circular tint with cow + ₹ badge. */}
+          <span
+            className="w-9 h-9 rounded-full bg-white/12 grid place-items-center shrink-0 transition-transform group-hover:scale-105 border border-white/20"
+            aria-hidden="true"
+          >
+            <span className="relative inline-flex items-center justify-center">
+              <span className="text-lg leading-none">🐄</span>
+              <span className="absolute -bottom-1 -right-1 text-[9px] font-extrabold text-white bg-brand-600 rounded-full w-3.5 h-3.5 grid place-items-center border border-white/30">
+                ₹
+              </span>
+            </span>
           </span>
-          <div className="text-left leading-tight">
-            <p className="text-white font-extrabold text-base tracking-tight">Animall</p>
-            <p className="text-white/80 text-[10px]">{tr('app_tagline')}</p>
-          </div>
+
+          <span className="text-left leading-tight min-w-0">
+            <span className="block text-white font-extrabold text-base tracking-tight truncate">
+              {tr('app_name')}
+            </span>
+            <span className="block text-white/85 text-[10px] font-medium truncate">
+              {tr('app_tagline')}
+            </span>
+          </span>
         </button>
 
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher variant="solid" />
+        <div className="flex items-center gap-2 shrink-0">
+          {showSellCta && (
+            <button
+              type="button"
+              onClick={() => navigate('/sell')}
+              className="hidden sm:inline-flex items-center px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white text-xs font-bold border border-white/25"
+            >
+              {tr('sell_livestock')}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => navigate('/profile')}
@@ -79,13 +104,18 @@ function HomeHeader() {
   );
 }
 
-export default function Header({ title, showBack = false, onBack }) {
+HomeHeader.propTypes = {
+  showSellCta: PropTypes.bool,
+};
+
+export default function Header({ title, showBack = false, onBack, showSellCta = true }) {
   if (title) return <InnerHeader title={title} showBack={showBack} onBack={onBack} />;
-  return <HomeHeader />;
+  return <HomeHeader showSellCta={showSellCta} />;
 }
 
 Header.propTypes = {
   title: PropTypes.string,
   showBack: PropTypes.bool,
   onBack: PropTypes.func,
+  showSellCta: PropTypes.bool,
 };

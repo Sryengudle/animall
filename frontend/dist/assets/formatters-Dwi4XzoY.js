@@ -1,0 +1,1 @@
+const s=(e,t="91")=>{const i=String(e||"").replace(/\D/g,"").slice(-10);return i.length!==10?e:`+${t} ${i.slice(0,5)} ${i.slice(5)}`},n=e=>/^[6-9]\d{9}$/.test(String(e||"").replace(/\D/g,""));export{s as f,n as i};

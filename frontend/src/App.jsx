@@ -16,6 +16,7 @@ const ListingDetail   = lazy(() => import('./pages/ListingDetailPage'));
 const MyListingsPage  = lazy(() => import('./pages/MyListingsPage'));
 const ProfilePage     = lazy(() => import('./pages/ProfilePage'));
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage'));
+const PreviewPage     = lazy(() => import('./pages/PreviewPage')); // /preview — redesign V2 primitives showcase
 
 function ProtectedRoute({ children }) {
   const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
@@ -66,6 +67,9 @@ export default function App() {
             <Route path="/my-listings"  element={<ProtectedRoute><MyListingsPage /></ProtectedRoute>} />
             <Route path="/profile"      element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/edit-profile" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
+
+            {/* Redesign V2 primitives showcase — public so we can review without auth */}
+            <Route path="/preview"      element={<PreviewPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

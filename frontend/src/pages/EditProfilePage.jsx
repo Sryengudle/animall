@@ -1,55 +1,123 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { Camera, MapPin, Info, Phone, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import Header from '../components/common/Header';
+import LocationSheet from '../components/common/LocationSheet';
 import { updateUser } from '../store/slices/authSlice';
-import useLanguage from '../hooks/useLanguage';
-import { Input, Select, Button, Card } from '../components/ui';
-import { LANG_OPTIONS } from '../i18n';
 import { setLang } from '../store/slices/uiSlice';
+import useLanguage from '../hooks/useLanguage';
+import { LANG_OPTIONS } from '../i18n';
+import { Button, Select } from '../components/ui';
+
+// Edit Profile — Pashu Mandi-style single-form layout (reference images 11, 14).
+// Avatar with camera badge at top, then stacked fields with consistent typography.
+// Language is a Select (per the user's "instead of segment toggle, give Select").
+function FieldLabel({ children, required }) {
+  return (
+    <label className="block text-sm font-bold text-surface-900 mb-2">
+      {children}
+      {required && <span className="ml-1 text-accent-600">*</span>}
+    </label>
+  );
+}
+
+function TextField({ label, value, onChange, placeholder, type = 'text', inputMode, disabled, leftIcon: LeftIcon, leftIconColor, required }) {
+  return (
+    <div>
+      <FieldLabel required={required}>{label}</FieldLabel>
+      <div className="relative">
+        {LeftIcon && (
+          <LeftIcon
+            size={18}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 ${leftIconColor || 'text-surface-500'}`}
+          />
+        )}
+        <input
+          type={type}
+          inputMode={inputMode}
+          value={value || ''}
+          onChange={onChange}
+          disabled={disabled}
+          placeholder={placeholder}
+          className={`w-full ${LeftIcon ? 'pl-11' : 'pl-4'} pr-4 py-3.5 rounded-2xl bg-surface-0 border border-surface-200 text-surface-900 placeholder:text-surface-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors disabled:bg-surface-100 disabled:text-surface-600`}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SelectField({ label, value, onChange, options, placeholder, required }) {
+  return (
+    <div>
+      <FieldLabel required={required}>{label}</FieldLabel>
+      <Select value={value || ''} onChange={onChange}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </Select>
+    </div>
+  );
+}
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { tr, lang } = useLanguage();
   const { user } = useSelector((s) => s.auth);
+  const photoRef = useRef(null);
+  const [locationSheetOpen, setLocationSheetOpen] = useState(false);
 
   const [form, setForm] = useState({
     name: user?.name || '',
     language: lang,
     location: user?.location || '',
-    whatsapp: user?.phone || '',
+    whatsapp: user?.whatsapp || '',
     phone: user?.phone || '',
     dob: user?.dob || '',
     livestock: user?.livestock || '',
     occupation: user?.occupation || '',
     experience: user?.experience || '',
-    appUsage: user?.appUsage || '',
     education: user?.education || '',
+    profilePhoto: user?.profilePhoto || '',
   });
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSubmit = (e) => {
+  function handlePhoto(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => set('profilePhoto', reader.result);
+    reader.readAsDataURL(file);
+  }
+
+  function handleLocationPicked(payload) {
+    if (payload.kind === 'pincode') set('location', payload.pincode);
+    if (payload.kind === 'address') set('location', payload.address);
+    if (payload.kind === 'gps') set('location', `${payload.coords.lat.toFixed(3)}, ${payload.coords.lng.toFixed(3)}`);
+  }
+
+  function handleSubmit(e) {
     e.preventDefault();
     dispatch(updateUser({
       name: form.name,
       location: form.location,
-      phone: form.phone,
+      whatsapp: form.whatsapp,
       dob: form.dob,
       livestock: form.livestock,
       occupation: form.occupation,
       experience: form.experience,
-      appUsage: form.appUsage,
       education: form.education,
+      profilePhoto: form.profilePhoto,
     }));
     if (form.language !== lang) dispatch(setLang(form.language));
     toast.success(tr('done'));
     navigate('/profile');
-  };
+  }
 
   const langOptions = LANG_OPTIONS.map(({ code, label }) => ({ value: code, label }));
   const occupationOptions = [
@@ -60,21 +128,15 @@ export default function EditProfilePage() {
     { value: 'OTHER',   label: tr('occupation_other') },
   ];
   const experienceOptions = [
-    { value: '0-5',   label: '0-5' },
-    { value: '6-10',  label: '6-10' },
-    { value: '11-15', label: '11-15' },
-    { value: '16-25', label: '16-25' },
-    { value: '25-30', label: '25-30' },
-    { value: '30+',   label: '30+' },
-  ];
-  const appUsageOptions = [
-    { value: 'HOME_BUY_SELL',  label: tr('app_usage_home') },
-    { value: 'BUSINESS',       label: tr('app_usage_business') },
-    { value: 'DAIRY_BUY_SELL', label: tr('app_usage_dairy') },
+    { value: '0-1',   label: '0–1 years' },
+    { value: '1-3',   label: '1–3 years' },
+    { value: '3-5',   label: '3–5 years' },
+    { value: '5-10',  label: '5–10 years' },
+    { value: '10-20', label: '10–20 years' },
+    { value: '20+',   label: '20+ years' },
   ];
   const educationOptions = [
     { value: 'NONE',     label: tr('edu_none') },
-    { value: 'BASIC',    label: tr('edu_basic') },
     { value: 'UPTO_5',   label: tr('edu_upto_5') },
     { value: 'UPTO_8',   label: tr('edu_upto_8') },
     { value: 'UPTO_10',  label: tr('edu_upto_10') },
@@ -84,79 +146,108 @@ export default function EditProfilePage() {
   ];
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen pb-12 bg-surface-50">
       <Header title={tr('edit_profile')} showBack />
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        {/* Profile photo */}
-        <Card className="p-5 flex flex-col items-center text-center">
+      <form onSubmit={handleSubmit} className="mx-auto max-w-xl px-4 py-6 space-y-5">
+        {/* Avatar with camera overlay */}
+        <div className="flex flex-col items-center text-center">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent-100 to-accent-300 flex items-center justify-center text-4xl text-accent-800 font-bold">
-              {form.name?.[0]?.toUpperCase() || '👤'}
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br from-surface-100 to-surface-200 grid place-items-center text-5xl text-surface-500 shadow-card">
+              {form.profilePhoto
+                ? <img src={form.profilePhoto} alt="" className="w-full h-full object-cover" />
+                : (form.name?.[0]?.toUpperCase() || '👤')}
             </div>
-            <button type="button" aria-label={tr('add_photo')}
-              className="absolute bottom-0 right-0 w-9 h-9 rounded-full bg-surface-0 border border-surface-200 shadow flex items-center justify-center">
-              <Camera size={16} className="text-surface-700" />
+            <button
+              type="button"
+              onClick={() => photoRef.current?.click()}
+              aria-label={tr('profile_photo_cta')}
+              className="absolute -bottom-1 -right-1 grid place-items-center w-9 h-9 rounded-full bg-brand-700 text-white shadow-md hover:bg-brand-800 active:scale-95 transition-all"
+            >
+              <Camera size={16} />
             </button>
+            <input ref={photoRef} type="file" accept="image/*" className="sr-only" onChange={handlePhoto} />
           </div>
-          <p className="text-sm font-bold mt-2 text-surface-900">{tr('add_photo')}</p>
-          <p className="text-xs text-surface-500 mt-0.5 max-w-xs">{tr('edit_profile_photo')}</p>
-        </Card>
+          <p className="mt-3 text-base font-extrabold text-brand-800">{tr('profile_photo_cta')}</p>
+          <p className="mt-1 text-xs text-surface-500 max-w-xs">{tr('profile_photo_hint')}</p>
+        </div>
 
-        <Input
+        {/* Name */}
+        <TextField
           label={tr('edit_profile_name')}
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
           placeholder={tr('edit_profile_name')}
+          required
         />
 
-        <Select
-          label={tr('edit_profile_language')}
+        {/* Language — Select dropdown (replaces segmented toggle per user request) */}
+        <SelectField
+          label="भाषा / Language"
           value={form.language}
           onChange={(e) => set('language', e.target.value)}
           options={langOptions}
         />
 
-        <Input
-          label={tr('edit_profile_address')}
-          hint={tr('edit_profile_address_once_warning')}
-          value={form.location}
-          onChange={(e) => set('location', e.target.value)}
-        />
+        {/* Address — input + Change link to open LocationSheet */}
+        <div>
+          <FieldLabel required>{tr('edit_profile_address')}</FieldLabel>
+          <div className="relative">
+            <input
+              type="text"
+              value={form.location || ''}
+              onChange={(e) => set('location', e.target.value)}
+              placeholder={tr('tell_your_location')}
+              className="w-full pl-4 pr-28 py-3.5 rounded-2xl bg-surface-0 border border-surface-200 text-surface-900 placeholder:text-surface-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => setLocationSheetOpen(true)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-800 px-2 py-1.5"
+            >
+              <MapPin size={14} />
+              {tr('loc_change')}
+            </button>
+          </div>
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-accent-700">
+            <Info size={12} />
+            {tr('profile_address_warn')}
+          </p>
+        </div>
 
+        {/* WhatsApp + Phone — 2 columns */}
         <div className="grid grid-cols-2 gap-3">
-          <Input
+          <TextField
             label={tr('edit_profile_whatsapp')}
-            type="tel"
-            inputMode="numeric"
             value={form.whatsapp}
             onChange={(e) => set('whatsapp', e.target.value.replace(/\D/g, '').slice(0, 10))}
-          />
-          <Input
-            label={tr('edit_profile_phone')}
+            placeholder="नंबर डालें"
             type="tel"
             inputMode="numeric"
+            leftIcon={MessageCircle}
+            leftIconColor="text-success"
+          />
+          <TextField
+            label={tr('edit_profile_phone')}
             value={form.phone}
-            onChange={(e) => set('phone', e.target.value.replace(/\D/g, '').slice(0, 10))}
+            disabled
+            type="tel"
+            inputMode="numeric"
+            leftIcon={Phone}
+            leftIconColor="text-brand-700"
           />
         </div>
 
-        <Input
+        {/* Birthday */}
+        <TextField
           label={tr('edit_profile_dob')}
-          type="date"
           value={form.dob}
           onChange={(e) => set('dob', e.target.value)}
+          type="date"
         />
 
-        <Input
-          label={tr('edit_profile_livestock')}
-          type="number"
-          inputMode="numeric"
-          value={form.livestock}
-          onChange={(e) => set('livestock', e.target.value)}
-        />
-
-        <Select
+        {/* Occupation */}
+        <SelectField
           label={tr('edit_profile_occupation')}
           value={form.occupation}
           onChange={(e) => set('occupation', e.target.value)}
@@ -164,23 +255,8 @@ export default function EditProfilePage() {
           placeholder={tr('select')}
         />
 
-        <Select
-          label={tr('edit_profile_experience')}
-          value={form.experience}
-          onChange={(e) => set('experience', e.target.value)}
-          options={experienceOptions}
-          placeholder={tr('experience_pick')}
-        />
-
-        <Select
-          label={tr('edit_profile_app_usage')}
-          value={form.appUsage}
-          onChange={(e) => set('appUsage', e.target.value)}
-          options={appUsageOptions}
-          placeholder={tr('select')}
-        />
-
-        <Select
+        {/* Education */}
+        <SelectField
           label={tr('edit_profile_education')}
           value={form.education}
           onChange={(e) => set('education', e.target.value)}
@@ -188,10 +264,36 @@ export default function EditProfilePage() {
           placeholder={tr('select')}
         />
 
-        <Button type="submit" size="lg" fullWidth>
+        {/* Cattle count */}
+        <TextField
+          label={tr('edit_profile_livestock')}
+          value={form.livestock}
+          onChange={(e) => set('livestock', e.target.value.replace(/\D/g, '').slice(0, 4))}
+          placeholder={tr('edit_profile_livestock')}
+          type="number"
+          inputMode="numeric"
+        />
+
+        {/* Experience */}
+        <SelectField
+          label={tr('edit_profile_experience')}
+          value={form.experience}
+          onChange={(e) => set('experience', e.target.value)}
+          options={experienceOptions}
+          placeholder={tr('experience_pick')}
+        />
+
+        {/* Submit */}
+        <Button type="submit" size="lg" fullWidth className="!rounded-2xl !bg-brand-700 hover:!bg-brand-800">
           {tr('edit_profile_save')}
         </Button>
       </form>
+
+      <LocationSheet
+        open={locationSheetOpen}
+        onClose={() => setLocationSheetOpen(false)}
+        onSelect={handleLocationPicked}
+      />
     </div>
   );
 }

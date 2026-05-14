@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
+
+/* ---------------------------------------------------------------------------
+   Theme tokens — copied from frontend/src/index.css (Earth & Emerald).
+   Source of truth for V1; extract to @animall/tokens package in V2.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --color-primary-50:  236 253 245;
+  --color-primary-100: 209 250 229;
+  --color-primary-200: 167 243 208;
+  --color-primary-300: 110 231 183;
+  --color-primary-400:  52 211 153;
+  --color-primary-500:  16 185 129;
+  --color-primary-600:   5 150 105;
+  --color-primary-700:   4 120  87;
+  --color-primary-800:   6  95  70;
+  --color-primary-900:   6  78  59;
+  --color-primary-950:   2  44  34;
+
+  --color-accent-50:  255 251 235;
+  --color-accent-100: 254 243 199;
+  --color-accent-200: 253 230 138;
+  --color-accent-300: 252 211  77;
+  --color-accent-400: 251 191  36;
+  --color-accent-500: 245 158  11;
+  --color-accent-600: 217 119   6;
+  --color-accent-700: 180  83   9;
+  --color-accent-800: 146  64  14;
+  --color-accent-900: 120  53  15;
+
+  --color-surface-0:   255 255 255;
+  --color-surface-50:  235 243 235;
+  --color-surface-100: 226 235 226;
+  --color-surface-200: 213 224 213;
+  --color-surface-300: 192 204 192;
+  --color-surface-400: 153 162 153;
+  --color-surface-500: 109 118 109;
+  --color-surface-600:  80  88  80;
+  --color-surface-700:  62  68  62;
+  --color-surface-800:  39  44  39;
+  --color-surface-900:  24  28  24;
+  --color-surface-950:  12  15  12;
+
+  --color-brand-50:  236 253 245;
+  --color-brand-100: 209 250 229;
+  --color-brand-300: 110 231 183;
+  --color-brand-500:  16 185 129;
+  --color-brand-600:   5 150 105;
+  --color-brand-700:   4 120  87;
+  --color-brand-800:   6  95  70;
+  --color-brand-900:   6  78  59;
+  --color-brand-950:   2  44  34;
+
+  --color-text:       var(--color-surface-900);
+  --color-text-muted: var(--color-surface-500);
+  --color-bg:         var(--color-surface-50);
+  --color-border:     var(--color-surface-200);
+
+  color-scheme: light;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    border-color: rgb(var(--color-border));
+  }
+
+  html {
+    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: rgb(var(--color-bg));
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--color-brand-50)) 0%,
+      rgb(var(--color-bg)) 35%,
+      rgb(var(--color-accent-50) / 0.55) 100%
+    );
+    background-attachment: fixed;
+    color: rgb(var(--color-text));
+    -webkit-text-size-adjust: 100%;
+  }
+
+  h1, h2, h3, h4 {
+    font-weight: 700;
+    color: rgb(var(--color-text));
+  }
+
+  a { color: inherit; text-decoration: none; }
+}
+
+@layer utilities {
+  .text-gradient-primary {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-brand-700)) 0%,
+      rgb(var(--color-brand-500)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass {
+    background: rgb(var(--color-surface-0) / 0.82);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+  }
+}

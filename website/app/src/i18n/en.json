@@ -1,0 +1,134 @@
+{
+  "nav": {
+    "home": "Home",
+    "howItWorks": "How it works",
+    "features": "Features",
+    "about": "About",
+    "download": "Download",
+    "contact": "Contact",
+    "legal": "Legal",
+    "language": "Language"
+  },
+  "hero": {
+    "headline": "India's trusted village livestock marketplace",
+    "subhead": "Buy and sell cows, buffalo, and goats directly with verified farmers. No middlemen, no fake listings.",
+    "primaryCta": "Download the App",
+    "secondaryCta": "See how it works",
+    "comingSoonNote": "Coming soon to Play Store",
+    "statsLine": "Maharashtra • 30 districts • 7 species",
+    "verified": "Verified",
+    "languages": "Languages",
+    "fees": "Fees"
+  },
+  "trustStrip": {
+    "item1": "OTP-verified sellers",
+    "item2": "Direct contact, no middleman",
+    "item3": "Marathi, Hindi, English"
+  },
+  "howItWorks": {
+    "title": "How Pashubazaar works",
+    "subtitle": "Simple, direct, built for farmers",
+    "buyers": {
+      "heading": "For buyers",
+      "step1Title": "Browse listings",
+      "step1Body": "Search livestock by type, breed, location, and price.",
+      "step2Title": "Check the details",
+      "step2Body": "Photos, breed, age, milk yield, calving history — all visible upfront.",
+      "step3Title": "Contact in the app",
+      "step3Body": "Open the app and talk directly to a verified seller."
+    },
+    "sellers": {
+      "heading": "For sellers",
+      "step1Title": "Post your animal",
+      "step1Body": "Add photos, breed, age, price. Five simple steps.",
+      "step2Title": "Reach real buyers",
+      "step2Body": "Thousands of verified buyers in your region see your listing.",
+      "step3Title": "Sell directly",
+      "step3Body": "Keep the full price. No commission, no middleman."
+    }
+  },
+  "features": {
+    "title": "Why Pashubazaar",
+    "subtitle": "Built for rural India — not for fancy Silicon Valley",
+    "f1Title": "Real photos and specs",
+    "f1Body": "Multiple photos, breed, age, milk yield, calving history. No filters, no fakery.",
+    "f2Title": "OTP-verified sellers",
+    "f2Body": "Every seller's phone is verified. No throwaway numbers, no fake listings.",
+    "f3Title": "Three languages",
+    "f3Body": "Marathi, Hindi, English — built for the farmers who use it, in the language they speak.",
+    "f4Title": "Free to list",
+    "f4Body": "No subscription, no commission. Listings stay live for 30 days."
+  },
+  "b2b": {
+    "title": "Are you a vet, feed brand, or financier?",
+    "body": "Reach thousands of farmers across Maharashtra and India. Let's talk about partnership opportunities.",
+    "cta": "Email us"
+  },
+  "ctaBand": {
+    "title": "Start buying or selling today",
+    "body": "Free. Mobile-first. Built for Indian farmers.",
+    "cta": "Download the App"
+  },
+  "footer": {
+    "company": "Company",
+    "product": "Product",
+    "legal": "Legal",
+    "connect": "Connect",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service",
+    "refund": "Refund policy",
+    "rights": "© 2026 Pashubazaar. All rights reserved.",
+    "tagline": "India's trusted village livestock marketplace"
+  },
+  "about": {
+    "title": "Who we are",
+    "lede": "Pashubazaar began with a simple observation: in rural India, livestock trade still happens through WhatsApp groups, with fake listings and no price transparency. We're fixing that.",
+    "missionTitle": "Our mission",
+    "missionBody": "Give every Indian farmer a trustworthy livestock marketplace — in their own language, on their own phone.",
+    "foundersTitle": "Founders"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "We'd love to hear from you",
+    "supportTitle": "Need help?",
+    "supportBody": "Questions about the app, your account, or a listing? Email us.",
+    "partnerTitle": "Business partnership",
+    "partnerBody": "Veterinary services, feed brands, finance — let's talk."
+  },
+  "download": {
+    "title": "Download the Pashubazaar app",
+    "subtitle": "The village marketplace, on your phone. Free. In Marathi, Hindi, and English.",
+    "playStore": "Get it on Play Store",
+    "comingSoonTitle": "🚧 Coming soon to Play Store",
+    "comingSoonBody": "Email us to get notified the moment it goes live.",
+    "notifyCta": "Notify me",
+    "pwaTitle": "Or add from the web",
+    "pwaBody": "Use without the app store. Open in your browser and add to your home screen.",
+    "preview": {
+      "title1": "Jersey cow", "meta1": "₹52,000 • Pune",
+      "title2": "Murrah buffalo", "meta2": "₹85,000 • Nashik",
+      "title3": "Osmanabadi goat", "meta3": "₹18,000 • Solapur"
+    }
+  },
+  "legal": {
+    "title": "Legal",
+    "lastUpdated": "Last updated: May 2026",
+    "privacyTitle": "Privacy policy",
+    "termsTitle": "Terms of service",
+    "refundTitle": "Refund and dispute policy",
+    "privacyP1": "This is a placeholder Privacy Policy. It will be replaced once reviewed by counsel.",
+    "privacyP2": "Pashubazaar collects only what is needed to operate the service: phone number (OTP verified), name, location, and listing details. We do not sell your data to third parties.",
+    "privacyP3": "For any questions, contact hello@pashubazaar.com.",
+    "termsP1": "These are placeholder Terms of Service. They will be replaced once reviewed by counsel.",
+    "termsP2": "Pashubazaar is a marketplace that connects buyers and sellers. We do not own the livestock listed, and we are not a party to transactions between users.",
+    "termsP3": "Fake listings, fraud, and abuse are grounds for account termination.",
+    "refundP1": "Listing on Pashubazaar is currently free. No payments are processed through the app — buyers and sellers transact directly.",
+    "refundP2": "If paid features are added in the future, the refund policy will be published here.",
+    "refundP3": "Dispute with a seller or buyer? Email details to hello@pashubazaar.com."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist.",
+    "cta": "Go to home"
+  }
+}

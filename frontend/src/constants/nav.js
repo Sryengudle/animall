@@ -1,10 +1,12 @@
-import { ShoppingCart, PlusCircle, Home, ListChecks, Bell } from 'lucide-react';
+import { SearchCheck, Notebook } from 'lucide-react';
+import CowIcon from '../components/icons/CowIcon';
 
-// 5-tab bottom navigation. Center item is highlighted as the primary action.
+// 3-tab bottom navigation (Pashu Mandi-style flat layout).
+// Buy uses SearchCheck (magnifier with a small check) — closest to the
+// reference's magnifier+plus glyph. Sell uses our custom cow silhouette so
+// livestock is unmistakable. My Cattle uses Notebook for the receipt/list feel.
 export const BOTTOM_NAV_ITEMS = [
-  { key: 'buy',         to: '/buy',         icon: ShoppingCart, labelKey: 'nav_buy' },
-  { key: 'sell',        to: '/sell',        icon: PlusCircle,   labelKey: 'nav_sell' },
-  { key: 'home',        to: '/',            icon: Home,         labelKey: 'nav_home', center: true },
-  { key: 'my_listings', to: '/my-listings', icon: ListChecks,   labelKey: 'nav_my_listings' },
-  { key: 'alerts',      to: '/alerts',      icon: Bell,         labelKey: 'nav_alerts', disabled: true },
+  { key: 'buy',       to: '/buy',         icon: SearchCheck, labelKey: 'nav_buy' },
+  { key: 'sell',      to: '/sell',        icon: CowIcon,     labelKey: 'nav_sell',     emphasis: true },
+  { key: 'my_cattle', to: '/my-listings', icon: Notebook,    labelKey: 'nav_my_cattle' },
 ];

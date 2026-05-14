@@ -2,43 +2,49 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ChevronRight, Edit3, LogOut, Phone, PhoneIncoming,
-  Heart, Coins, MessageSquare, Wallet,
+  ChevronRight, Edit3, LogOut, Users, Palette,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
-import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import ThemeToggle from '../components/common/ThemeToggle';
 import { logout } from '../store/slices/authSlice';
 import useLanguage from '../hooks/useLanguage';
-import { Avatar, Card, Button } from '../components/ui';
+import { Avatar, Card, CompletionBadge } from '../components/ui';
 import { formatPhoneDisplay } from '../utils/formatters';
 
-function Section({ title, children }) {
-  return (
-    <section className="mb-3">
-      <h3 className="px-4 pt-3 pb-2 text-xs font-bold uppercase tracking-wide text-surface-500">{title}</h3>
-      <Card className="!rounded-none border-x-0">{children}</Card>
-    </section>
-  );
+// Pashu Mandi-style profile main page (reference image 18).
+// Card-based: user identity at top, settings list below, legal footer.
+//
+// Profile completion: 10 fields × 10% each. Phone is automatic (already
+// OTP-verified). Each of the 9 optional fields adds 10% when filled.
+const COMPLETION_FIELDS = [
+  'name', 'profilePhoto', 'location', 'whatsapp',
+  'birthday', 'occupation', 'education', 'cattleCount', 'experience',
+];
+
+function computeCompletion(user) {
+  if (!user) return 0;
+  const filled = COMPLETION_FIELDS.filter((k) => {
+    const v = user[k];
+    return v != null && v !== '' && v !== 0;
+  }).length;
+  // Phone counted as already-filled (OTP-verified at signup)
+  return Math.round(((filled + 1) / (COMPLETION_FIELDS.length + 1)) * 100);
 }
 
-function MenuItem({ icon: Icon, label, onClick, accent }) {
+function SettingCard({ icon: Icon, accent, label, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-surface-50 active:bg-surface-100 transition-colors border-b border-surface-50 last:border-b-0
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300`}
+      className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-surface-0 hover:bg-surface-50 active:bg-surface-100 transition-colors shadow-card text-left
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
     >
-      <span className="flex items-center gap-3">
-        <span className={`w-9 h-9 rounded-full flex items-center justify-center ${accent || 'bg-surface-100 text-surface-700'}`}>
-          <Icon size={18} />
-        </span>
-        <span className="text-sm font-semibold text-surface-800">{label}</span>
+      <span className={`grid place-items-center h-9 w-9 rounded-full shrink-0 ${accent}`}>
+        <Icon size={18} />
       </span>
+      <span className="flex-1 text-base font-bold text-surface-900">{label}</span>
       <ChevronRight size={18} className="text-surface-400" />
     </button>
   );
@@ -49,89 +55,108 @@ export default function ProfilePage() {
   const dispatch = useDispatch();
   const { tr } = useLanguage();
   const { user } = useSelector((s) => s.auth);
+  const completion = computeCompletion(user);
 
-  const handleLogout = () => {
+  async function handleShare() {
+    const url = window.location.origin;
+    const text = `${tr('app_name')} — ${tr('app_tagline')}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: tr('app_name'), text, url }); }
+      catch { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        toast.success(tr('link_copied'));
+      } catch { toast.error(tr('error_generic')); }
+    }
+  }
+
+  function handleLogout() {
     if (!window.confirm(tr('profile_confirm_logout'))) return;
     dispatch(logout());
     toast.success(tr('done'));
     navigate('/login');
-  };
+  }
 
   return (
-    <div className="min-h-screen pb-28">
+    <div className="min-h-screen pb-32 bg-surface-50">
       <Header title={tr('profile_title')} showBack />
 
-      {/* Profile card */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="px-4 pt-4"
-      >
-        <Card className="p-5">
-          <div className="flex items-center gap-4">
-            <Avatar src={user?.profilePhoto} name={user?.name || 'A'} size="xl" />
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-extrabold text-surface-900 truncate">
-                {user?.name || tr('seller')}
-              </h2>
-              <p className="text-sm text-surface-500 truncate">
-                {user?.location ? `${user.location} · ` : ''}{formatPhoneDisplay(user?.phone)}
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <LanguageSwitcher />
-                <ThemeToggle />
+      <main className="mx-auto max-w-xl px-4 pt-5 space-y-3">
+        {/* User identity card */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Card className="p-4">
+            <div className="flex items-start gap-3">
+              {/* Smaller avatar (lg) gives the middle column more room so the
+                  phone number doesn't truncate and the badge doesn't wrap. */}
+              <Avatar src={user?.profilePhoto} name={user?.name || 'A'} size="lg" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <h2 className="text-lg font-extrabold text-surface-900 truncate">
+                    {user?.name || tr('seller')}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/edit-profile')}
+                    aria-label={tr('edit')}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand-100/60 text-brand-800 text-xs font-bold hover:bg-brand-100 active:scale-95 transition-all shrink-0"
+                  >
+                    <Edit3 size={12} />
+                    {tr('edit')}
+                  </button>
+                </div>
+                {/* Phone on its own line so the full +91 99999 99999 string
+                    has room to breathe. No truncate — let it wrap if needed. */}
+                <p className="mt-1 text-sm font-semibold text-surface-700 break-all">
+                  {formatPhoneDisplay(user?.phone)}
+                </p>
+                <div className="mt-2">
+                  <CompletionBadge percent={completion} />
+                </div>
               </div>
             </div>
-            <Button size="sm" variant="secondary" leftIcon={Edit3} onClick={() => navigate('/edit-profile')}>
-              {tr('edit')}
-            </Button>
-          </div>
-        </Card>
-      </motion.div>
+          </Card>
+        </motion.div>
 
-      {/* Stats */}
-      <section className="px-4 mt-4">
-        <p className="text-xs text-surface-500 mb-2">{tr('profile_journey')}</p>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { value: 0, label: tr('profile_listings_posted'), icon: '🐄' },
-            { value: 0, label: tr('profile_calls_made'),     icon: '📞' },
-            { value: 0, label: tr('profile_calls_received'), icon: '📲' },
-          ].map((s) => (
-            <Card key={s.label} className="p-4 text-center !shadow-sm">
-              <span className="text-2xl">{s.icon}</span>
-              <p className="text-2xl font-extrabold text-surface-900 mt-1">{s.value}</p>
-              <p className="text-[11px] text-surface-500 leading-tight mt-1">{s.label}</p>
-            </Card>
-          ))}
+        {/* Setting cards */}
+        <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-surface-0 shadow-card">
+          <span className="grid place-items-center h-9 w-9 rounded-full shrink-0 bg-brand-100 text-brand-700">
+            <Palette size={18} />
+          </span>
+          <span className="flex-1 text-base font-bold text-surface-900">{tr('theme')}</span>
+          <ThemeToggle />
         </div>
-      </section>
 
-      {/* Sections */}
-      <div className="mt-4">
-        <Section title={tr('profile_section_selling')}>
-          <MenuItem icon={Wallet} label={tr('profile_my_plan')} onClick={() => {}} accent="bg-accent-100 text-accent-700" />
-          <MenuItem icon={PhoneIncoming} label={tr('profile_my_animals')} onClick={() => navigate('/my-listings')} accent="bg-primary-100 text-primary-700" />
-          <MenuItem icon={Phone} label={tr('profile_calls_received')} onClick={() => {}} accent="bg-blue-100 text-blue-700" />
-        </Section>
+        <SettingCard
+          icon={Users}
+          accent="bg-accent-100 text-accent-700"
+          label={tr('profile_share_friends')}
+          onClick={handleShare}
+        />
+        <SettingCard
+          icon={LogOut}
+          accent="bg-red-50 text-red-600"
+          label={tr('profile_logout')}
+          onClick={handleLogout}
+        />
+      </main>
 
-        <Section title={tr('profile_section_buying')}>
-          <MenuItem icon={Phone} label={tr('profile_calls_made')} onClick={() => {}} accent="bg-purple-100 text-purple-700" />
-          <MenuItem icon={Heart} label={tr('profile_liked')} onClick={() => {}} accent="bg-rose-100 text-rose-600" />
-        </Section>
-
-        <Section title={tr('profile_section_other')}>
-          <MenuItem icon={Coins} label={tr('profile_coins')} onClick={() => {}} accent="bg-yellow-100 text-yellow-700" />
-          <MenuItem icon={MessageSquare} label={tr('profile_help')} onClick={() => {}} accent="bg-primary-100 text-primary-700" />
-        </Section>
-
-        <Section title={tr('profile_section_help')}>
-          <MenuItem icon={LogOut} label={tr('profile_logout')} onClick={handleLogout} accent="bg-red-50 text-red-500" />
-        </Section>
-      </div>
-
-      <BottomNav />
+      {/* Footer — pinned to bottom of viewport, sits above BottomNav */}
+      <footer className="absolute bottom-0 left-0 right-0 px-4 pb-24 pt-6 text-center text-xs text-surface-500 bg-gradient-to-t from-surface-100 to-transparent">
+        <p>0.1.0 (V2)</p>
+        <p className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+          <button type="button" onClick={() => navigate('/legal#privacy')} className="hover:text-brand-700 transition-colors">{tr('footer_privacy')}</button>
+          <span className="text-surface-300">·</span>
+          <button type="button" onClick={() => navigate('/legal#terms')} className="hover:text-brand-700 transition-colors">{tr('footer_terms')}</button>
+          <span className="text-surface-300">·</span>
+          <button type="button" onClick={() => navigate('/legal#refund')} className="hover:text-brand-700 transition-colors">{tr('footer_refund')}</button>
+        </p>
+        <p className="mt-2 text-surface-400">© 2026 {tr('app_name')}.</p>
+      </footer>
     </div>
   );
 }

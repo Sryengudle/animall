@@ -56,8 +56,11 @@ export default defineConfig(({ command }) => ({
   ],
   server: {
     proxy: {
-      '/api': 'http://localhost:5000',
-      '/uploads': 'http://localhost:5000',
+      // Python (FastAPI) backend on 5001. macOS AirPlay receiver squats on 5000,
+      // so the Python backend lives on 5001 by default. If you re-enable the Node
+      // backend on 5000, switch these two lines back.
+      '/api': 'http://localhost:5001',
+      '/uploads': 'http://localhost:5001',
     },
     allowedHosts: ['my-unique-demo-123.loca.lt']
   },

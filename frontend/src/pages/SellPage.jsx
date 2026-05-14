@@ -1,225 +1,348 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import { z } from 'zod';
+import {
+  Camera, MapPin, IndianRupee, Milk, Info, ChevronDown, Award, Repeat,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check, PartyPopper } from 'lucide-react';
 
 import Header from '../components/common/Header';
 import BottomNav from '../components/common/BottomNav';
-import StepProgress from '../components/animal/StepProgress';
-import StepType from '../components/animal/sellSteps/StepType';
-import StepPhotos from '../components/animal/sellSteps/StepPhotos';
-import StepDetails from '../components/animal/sellSteps/StepDetails';
-import StepContact from '../components/animal/sellSteps/StepContact';
-import StepReview from '../components/animal/sellSteps/StepReview';
-
-import { Button } from '../components/ui';
+import LocationSheet from '../components/common/LocationSheet';
+import CowIcon from '../components/icons/CowIcon';
+import {
+  ChipSelect,
+  MediaUploadTile,
+} from '../components/ui';
 import useLanguage from '../hooks/useLanguage';
 import { addAnimal } from '../store/slices/animalsSlice';
-import { isValidIndianMobile } from '../utils/formatters';
 
-const STEP_TYPE = 0;
-const STEP_PHOTOS = 1;
-const STEP_DETAILS = 2;
-const STEP_CONTACT = 3;
-const STEP_REVIEW = 4;
+// ── Constants
+const ANIMAL_TYPES = [
+  { key: 'cow',     label: 'Cow' },
+  { key: 'buffalo', label: 'Buffalo' },
+  { key: 'goat',    label: 'Goat' },
+  { key: 'sheep',   label: 'Sheep' },
+  { key: 'chicken', label: 'Chicken' },
+];
+
+const BREEDS_BY_TYPE = {
+  cow:     ['jersey_cross', 'hf', 'gir', 'sahiwal', 'khillar', 'other'],
+  buffalo: ['murrah', 'jaffarabadi', 'haryana', 'surti', 'mehsana', 'other'],
+  goat:    ['osmanabadi', 'sangamneri', 'berari', 'other'],
+  sheep:   ['deccani', 'other'],
+  chicken: ['desi', 'other'],
+};
+
+const LACTATIONS = [
+  { key: 'none',   label: 'Not delivered' },
+  { key: 'first',  label: 'First' },
+  { key: 'second', label: 'Second' },
+  { key: 'third',  label: 'Third' },
+];
+
+// Cow / Buffalo are the only types with milk + lactation fields
+const MILK_TYPES = new Set(['cow', 'buffalo']);
+
+// ── Sub-components inside this file (one-off)
+function SectionHeader({ icon: Icon, label, required }) {
+  return (
+    <header className="flex items-center gap-2 mb-3">
+      <span className="grid place-items-center w-7 h-7 rounded-lg bg-surface-100 text-surface-700">
+        <Icon size={18} />
+      </span>
+      <h3 className="text-base font-extrabold text-surface-900 leading-tight">{label}</h3>
+      {required && <span className="text-accent-600 text-base leading-none -mt-1">*</span>}
+    </header>
+  );
+}
+
+function Helper({ children }) {
+  return (
+    <p className="text-xs text-surface-500 -mt-2 mb-3 pl-9">{children}</p>
+  );
+}
+
+function SuffixedInput({ prefix, suffix, ...inputProps }) {
+  return (
+    <div className="flex items-stretch rounded-2xl bg-surface-0 border border-surface-200 overflow-hidden focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 transition-colors">
+      {prefix && (
+        <span className="px-4 grid place-items-center bg-surface-50 text-surface-700 font-bold">
+          {prefix}
+        </span>
+      )}
+      <input
+        {...inputProps}
+        className="flex-1 px-4 py-3.5 outline-none border-none bg-transparent text-surface-900 placeholder:text-surface-400 text-base font-medium min-w-0"
+      />
+      {suffix && (
+        <span className="px-4 grid place-items-center bg-surface-100 text-surface-600 font-medium text-sm whitespace-nowrap">
+          {suffix}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function SellPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { tr } = useLanguage();
-  const { token, user } = useSelector((s) => s.auth);
+  const { token } = useSelector((s) => s.auth);
 
-  const [step, setStep] = useState(STEP_TYPE);
+  const [animal, setAnimal] = useState('cow');
+  const [breed, setBreed] = useState('');
+  const [lactation, setLactation] = useState('');
+  const [milk, setMilk] = useState('');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+
+  // V1: backend's /api/animals only accepts photos via `images[]`. Video upload
+  // requires a backend extension — TODO in `services/storage.py`. So all three
+  // tiles are `kind='photo'` until then. Labels still match the reference layout.
+  const [mainFile, setMainFile] = useState(null);
+  const [udderFile, setUdderFile] = useState(null);
+  const [milkingFile, setMilkingFile] = useState(null);
+
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [locOpen, setLocOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [files, setFiles] = useState([]);
-  const [previews, setPreviews] = useState([]);
 
-  const [form, setForm] = useState({
-    type: 'cow',
-    breed: '',
-    calving: '',
-    milkPerDay: '',
-    price: '',
-    location: '',
-    description: '',
-    contactPhone: user?.phone || '',
-  });
+  const showMilk = MILK_TYPES.has(animal);
+  const breedKeys = BREEDS_BY_TYPE[animal] || ['other'];
 
-  // ── Step labels (i18n)
-  const stepLabels = useMemo(() => ([
-    tr('sell_step_type'),
-    tr('sell_step_photos'),
-    tr('sell_step_details'),
-    tr('sell_step_contact'),
-    tr('sell_step_review'),
-  ]), [tr]);
+  const canPost = !!(animal && breed && price && location && mainFile && (!showMilk || (lactation && milk)));
 
-  // ── Schemas (built lazily so messages stay localized)
-  const detailsSchema = z.object({
-    breed: z.string().min(1, tr('required_breed')),
-    price: z.string().min(1, tr('required_price')),
-    location: z.string().min(1, tr('required_location')),
-  });
-  const contactSchema = z.object({
-    contactPhone: z.string().refine(isValidIndianMobile, tr('required_contact')),
-  });
+  function handleLocation(payload) {
+    if (payload.kind === 'pincode') setLocation(`PIN ${payload.pincode}`);
+    else if (payload.kind === 'address') setLocation(payload.address);
+    else if (payload.kind === 'gps') setLocation(`${payload.coords.lat.toFixed(3)}, ${payload.coords.lng.toFixed(3)}`);
+  }
 
-  // ── Step validators
-  const validateStep = (n) => {
-    setErrors({});
-    if (n === STEP_PHOTOS && files.length === 0) {
-      toast.error(tr('required_photo'));
-      return false;
-    }
-    if (n === STEP_DETAILS) {
-      const res = detailsSchema.safeParse(form);
-      if (!res.success) {
-        const flat = Object.fromEntries(
-          res.error.issues.map((i) => [i.path[0], i.message])
-        );
-        setErrors(flat);
-        return false;
-      }
-    }
-    if (n === STEP_CONTACT) {
-      const res = contactSchema.safeParse(form);
-      if (!res.success) {
-        setErrors({ contactPhone: res.error.issues[0].message });
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const next = () => {
-    if (!validateStep(step)) return;
-    setStep((s) => Math.min(STEP_REVIEW, s + 1));
-  };
-  const back = () => {
-    if (step === STEP_TYPE) return navigate(-1);
-    setStep((s) => Math.max(STEP_TYPE, s - 1));
-  };
-
-  const submit = async () => {
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!canPost || submitting) return;
     setSubmitting(true);
-    try {
-      const fd = new FormData();
-      Object.entries(form).forEach(([k, v]) => fd.append(k, v ?? ''));
-      files.forEach((f) => f && fd.append('images', f));
-      fd.append('sellerName', user?.name || '');
-      fd.append('sellerPhone', form.contactPhone);
-      fd.append('age', '');
-      fd.append('ageUnit', 'years');
 
-      await dispatch(addAnimal({ formData: fd, token }));
+    const fd = new FormData();
+    fd.append('type', animal);
+    fd.append('price', String(price));
+    fd.append('location', location);
+    fd.append('age', '3');               // placeholder default until we add an age field
+    fd.append('ageUnit', 'years');
+    fd.append('breed', breed);
+    if (showMilk) {
+      fd.append('calving', lactation);
+      fd.append('milkPerDay', milk);
+    }
+    fd.append('description', description);
+    for (const f of [mainFile, udderFile, milkingFile]) {
+      if (f) fd.append('images', f);
+    }
+
+    try {
+      await dispatch(addAnimal({ formData: fd, token })).unwrap();
       toast.success(tr('listing_added'));
-      setDone(true);
+      navigate('/my-listings');
     } catch {
       toast.error(tr('error_generic'));
     } finally {
       setSubmitting(false);
     }
-  };
-
-  if (done) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col">
-        <Header title={tr('sell_step_review')} showBack onBack={() => navigate('/')} />
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', damping: 14, stiffness: 220 }}
-            className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-2xl shadow-primary-500/30 mb-5 text-white"
-          >
-            <PartyPopper size={42} />
-          </motion.div>
-          <h2 className="text-2xl font-extrabold text-surface-900 mb-1">{tr('sell_success_title')}</h2>
-          <p className="text-sm text-surface-500 mb-6 max-w-xs">{tr('sell_success_subtitle')}</p>
-          <div className="flex gap-3 w-full max-w-sm">
-            <Button fullWidth variant="secondary" onClick={() => navigate('/')}>
-              {tr('nav_home')}
-            </Button>
-            <Button fullWidth onClick={() => navigate('/my-listings')}>
-              {tr('sell_my_animals')}
-            </Button>
-          </div>
-        </div>
-        <BottomNav />
-      </div>
-    );
   }
 
   return (
-    // BottomNav is intentionally hidden in the wizard — it's a focused task.
-    // The user exits via the header back arrow.
-    <div className="min-h-screen pb-28">
-      <Header title={tr('home_banner_sell_title')} showBack onBack={back} />
+    <div className="min-h-screen bg-surface-50 pb-44">
+      <Header />
 
-      <div className="px-4 pt-3">
-        <StepProgress steps={stepLabels} current={step} />
-      </div>
+      <main className="mx-auto max-w-xl px-4 pt-5">
+        <h1 className="text-2xl font-extrabold text-surface-900 mb-4">{tr('sell_livestock')}</h1>
 
-      <main className="px-4 py-5">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={step}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -24 }}
-            transition={{ duration: 0.25 }}
-          >
-            {step === STEP_TYPE && (
-              <StepType
-                value={form.type}
-                onChange={(v) => setForm((f) => ({ ...f, type: v, breed: '', calving: '', milkPerDay: '' }))}
+        {/* FREE info banner — single translated string, bold + brand color signals "free" */}
+        <div className="mb-6 rounded-2xl bg-surface-0 px-4 py-3 flex items-center gap-3 shadow-card">
+          <Info size={18} className="text-brand-700 shrink-0" />
+          <p className="text-sm font-bold text-brand-800">
+            {tr('free_to_list')}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-7">
+          {/* Which animal */}
+          <section>
+            <SectionHeader icon={CowIcon} label={tr('which_animal')} required />
+            <ChipSelect
+              value={animal}
+              onChange={(v) => { setAnimal(v); setBreed(''); setLactation(''); }}
+              options={ANIMAL_TYPES.map((a) => ({ key: a.key, label: tr(a.key) || a.label }))}
+            />
+          </section>
+
+          {/* Breed */}
+          <section>
+            <SectionHeader icon={Award} label={tr('breed_label')} required />
+            <ChipSelect
+              value={breed}
+              onChange={setBreed}
+              options={breedKeys.map((b) => ({
+                key: b,
+                label: (tr(`breed_${animal}_${b}`) || b).toUpperCase(),
+              }))}
+            />
+          </section>
+
+          {/* Lactation — cow/buffalo only */}
+          {showMilk && (
+            <section>
+              <SectionHeader icon={Repeat} label={tr('which_lactation')} required />
+              <ChipSelect
+                value={lactation}
+                onChange={setLactation}
+                options={LACTATIONS.map((l) => ({ key: l.key, label: tr(`calving_${l.key}`) || l.label }))}
               />
-            )}
-            {step === STEP_PHOTOS && (
-              <StepPhotos
-                files={files}
-                previews={previews}
-                onChange={(f, p) => { setFiles(f); setPreviews(p); }}
+            </section>
+          )}
+
+          {/* Milk — cow/buffalo only */}
+          {showMilk && (
+            <section>
+              <SectionHeader icon={Milk} label={tr('current_milk_per_day')} required />
+              <Helper>{tr('current_milk_helper')}</Helper>
+              <SuffixedInput
+                type="number"
+                inputMode="numeric"
+                value={milk}
+                onChange={(e) => setMilk(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                placeholder="10"
+                suffix={tr('litre')}
               />
+            </section>
+          )}
+
+          {/* Price */}
+          <section>
+            <SectionHeader icon={IndianRupee} label={tr('price_label')} required />
+            <Helper>{tr('price_helper')}</Helper>
+            <SuffixedInput
+              type="number"
+              inputMode="numeric"
+              value={price}
+              onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              placeholder="40,000"
+              prefix="₹"
+              suffix={tr('rupees')}
+            />
+          </section>
+
+          {/* Media — 3 tiles */}
+          <section>
+            <SectionHeader icon={Camera} label={tr('add_video_or_photo')} required />
+            <Helper>{tr('add_video_or_photo_hint')}</Helper>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Main photo (will accept video too once backend supports it) */}
+              <MediaUploadTile
+                kind="photo"
+                label={tr('select_photo')}
+                file={mainFile}
+                onFile={setMainFile}
+                onError={(m) => toast.error(m)}
+              />
+              <MediaUploadTile
+                kind="photo"
+                label={tr('select_udder_photo')}
+                file={udderFile}
+                onFile={setUdderFile}
+                onError={(m) => toast.error(m)}
+              />
+              <MediaUploadTile
+                kind="photo"
+                label={tr('add_milking_video')}
+                fullWidth
+                file={milkingFile}
+                onFile={setMilkingFile}
+                onError={(m) => toast.error(m)}
+              />
+            </div>
+          </section>
+
+          {/* Add more information (accordion) */}
+          <section>
+            <button
+              type="button"
+              onClick={() => setMoreOpen((o) => !o)}
+              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-surface-0 border-2 border-brand-200 px-4 py-3.5 text-brand-800 font-bold shadow-card active:scale-[0.99] transition-transform"
+            >
+              <span>{tr('add_more_information')}</span>
+              <ChevronDown
+                size={20}
+                className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+            {moreOpen && (
+              <div className="mt-3 rounded-2xl bg-surface-0 p-4 shadow-card">
+                <label className="block text-sm font-bold text-surface-900 mb-2">
+                  {tr('detail_description')}
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
+                  placeholder={tr('sell_description_placeholder')}
+                  className="w-full px-4 py-3 rounded-2xl bg-surface-50 border border-surface-200 text-surface-900 placeholder:text-surface-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors resize-none"
+                />
+              </div>
             )}
-            {step === STEP_DETAILS && (
-              <StepDetails value={form} onChange={setForm} errors={errors} />
-            )}
-            {step === STEP_CONTACT && (
-              <StepContact value={form} onChange={setForm} errors={errors} />
-            )}
-            {step === STEP_REVIEW && (
-              <StepReview value={form} previews={previews} />
-            )}
-          </motion.div>
-        </AnimatePresence>
+          </section>
+
+          {/* Location */}
+          <section>
+            <SectionHeader icon={MapPin} label={tr('location_label')} required />
+            <Helper>{tr('location_helper')}</Helper>
+            <div className="relative">
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={tr('tell_your_location')}
+                className="w-full pl-4 pr-24 py-3.5 rounded-2xl bg-surface-0 border border-surface-200 text-surface-900 placeholder:text-surface-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setLocOpen(true)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-brand-700 hover:text-brand-800 px-2 py-1.5"
+              >
+                {tr('loc_change')}
+              </button>
+            </div>
+          </section>
+        </form>
       </main>
 
-      {/* Sticky action bar — sits at the bottom (no BottomNav in wizard) */}
-      <div className="fixed bottom-0 left-0 right-0 bg-surface-0 border-t border-surface-200 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex gap-3">
-        <Button
-          variant="secondary"
-          size="lg"
-          leftIcon={ArrowLeft}
-          onClick={back}
+      {/* Sticky Post button (sits above BottomNav).
+          Disabled state uses surface-200 bg + surface-500 text so it's always
+          clearly readable — earlier bg-brand-200/60 + text-white/70 made the
+          label invisible. */}
+      <div className="fixed bottom-[60px] left-0 right-0 z-30 bg-surface-0/95 backdrop-blur-sm border-t border-surface-200 px-4 py-3">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={!canPost || submitting}
+          className={`w-full py-3.5 rounded-2xl font-bold text-base active:scale-95 transition-all
+            ${canPost && !submitting
+              ? 'bg-brand-700 text-white shadow-button hover:bg-brand-800'
+              : 'bg-surface-200 text-surface-500 cursor-not-allowed'}`}
         >
-          {tr('back')}
-        </Button>
-        {step < STEP_REVIEW ? (
-          <Button fullWidth size="lg" onClick={next} rightIcon={ArrowRight}>
-            {tr('next')}
-          </Button>
-        ) : (
-          <Button fullWidth size="lg" loading={submitting} onClick={submit} rightIcon={Check}>
-            {tr('submit')}
-          </Button>
-        )}
+          {submitting ? tr('loading') : tr('post_button')}
+        </button>
       </div>
+
+      <BottomNav />
+
+      <LocationSheet
+        open={locOpen}
+        onClose={() => setLocOpen(false)}
+        onSelect={handleLocation}
+      />
     </div>
   );
 }
