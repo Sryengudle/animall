@@ -214,7 +214,7 @@ export default function BuyPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5">
+        {/* <div className="grid grid-cols-3 gap-2.5">
           <QuickFilterTile
             icon={Droplets}
             label={tr('filter_milk')}
@@ -236,7 +236,7 @@ export default function BuyPage() {
             active={filters.distance !== 'any'}
             onClick={() => openFilters('distance')}
           />
-        </div>
+        </div> */}
 
         <div className="flex items-center justify-between border-t border-surface-200 pt-3 -mx-1 px-1">
           <p className="text-caption font-bold uppercase tracking-wider text-surface-500">
