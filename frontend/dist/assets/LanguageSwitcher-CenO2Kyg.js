@@ -1,0 +1,4 @@
+import{b as p,j as t,L as g,P as s}from"./index-DhRMgBdE.js";function b({variant:r="light",className:o=""}){const{lang:a,changeLang:i}=p(),n=r==="solid"?"bg-white/15 backdrop-blur-sm border border-white/25":"bg-surface-100 border border-surface-200",l="bg-surface-0 text-primary-700 shadow-sm",c=r==="solid"?"text-white/85 hover:text-white":"text-surface-600 hover:text-surface-900";return t.jsx("div",{role:"radiogroup","aria-label":"Language",className:`inline-flex items-center rounded-full p-1 ${n} ${o}`,children:g.map(({code:e,short:u,label:d})=>t.jsx("button",{type:"button",role:"radio","aria-checked":a===e,"aria-label":d,onClick:()=>i(e),className:`
+            px-3 py-1 text-caption font-bold rounded-full transition-all duration-200
+            ${a===e?l:c}
+          `,children:u},e))})}b.propTypes={variant:s.oneOf(["solid","light"]),className:s.string};export{b as L};

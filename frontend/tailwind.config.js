@@ -102,9 +102,12 @@ export default {
         'micro-caps': ['10px', { lineHeight: '12px', letterSpacing: '0.08em', fontWeight: '700' }],
       },
       borderRadius: {
-        xl: '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem',
+        // Standard Tailwind scale — `rounded-2xl` is 1rem (16px), matching the
+        // app's surface-card convention. Custom overrides were causing the
+        // whole app to render at 1.5rem instead of 1rem.
+        xl: '0.75rem',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
       },
       boxShadow: {
         // Cards get a layered shadow that works on light AND dark backgrounds.

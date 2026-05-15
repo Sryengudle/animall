@@ -109,17 +109,24 @@ function Toggle({ label, sub, value, onChange }) {
       type="button"
       onClick={() => onChange?.(!value)}
       aria-pressed={value}
-      className="w-full flex items-center justify-between gap-3 rounded-2xl bg-surface-0 border border-surface-200 px-4 py-3 hover:border-brand-300 transition-colors"
+      className={`w-full flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+        value
+          ? 'bg-brand-50 ring-1 ring-brand-200'
+          : 'bg-surface-50 ring-1 ring-surface-200 hover:bg-brand-50/40 hover:ring-brand-200'
+      }`}
     >
       <div className="text-left min-w-0">
-        <p className="text-caption !font-bold text-surface-900">{label}</p>
-        {sub && <p className="text-micro !font-medium normal-case tracking-normal text-surface-500 mt-0.5">{sub}</p>}
+        <p className={`text-caption !font-bold ${value ? 'text-brand-800' : 'text-surface-900'}`}>{label}</p>
+        {sub && (
+          <p className="text-micro !font-medium normal-case tracking-normal text-surface-500 mt-0.5">{sub}</p>
+        )}
       </div>
       <span
-        className={`relative w-11 h-6 rounded-full transition-colors ${value ? 'bg-brand-600' : 'bg-surface-300'}`}
+        className={`relative w-10 h-5.5 rounded-full transition-colors shrink-0 ${value ? 'bg-brand-600' : 'bg-surface-300'}`}
+        style={{ height: '22px', width: '40px' }}
       >
         <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${value ? 'translate-x-5' : ''}`}
+          className={`absolute top-0.5 left-0.5 w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform ${value ? 'translate-x-[18px]' : ''}`}
         />
       </span>
     </button>
@@ -161,37 +168,68 @@ export default function PremiumFiltersSheet({
   function handleReset() { setLocal(DEFAULT_FILTERS); }
   function handleApply() { onApply?.(local); onClose?.(); }
 
-  const dirty = JSON.stringify(local) !== JSON.stringify(DEFAULT_FILTERS);
+  // Count how many facets are non-default — surfaces the answer to
+  // "did I actually change anything?" right on the Apply button.
+  const activeCount = Object.keys(DEFAULT_FILTERS).reduce(
+    (n, k) => n + (JSON.stringify(local[k]) !== JSON.stringify(DEFAULT_FILTERS[k]) ? 1 : 0),
+    0,
+  );
+  const dirty = activeCount > 0;
 
   return (
     <BottomSheet
       open={open}
       onClose={onClose}
       footer={
-        <div className="space-y-3">
-          <p className="flex items-center justify-center gap-1.5 text-caption text-brand-700 font-semibold">
-            <ShieldCheck size={14} />
-            {dirty ? tr('filter_apply') : tr('filter_no_additional')}
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="secondary" onClick={handleReset}>{tr('filter_reset')}</Button>
-            <Button onClick={handleApply}>{tr('filter_apply')}</Button>
-          </div>
+        <div className="grid grid-cols-[auto_1fr] gap-2.5 items-stretch">
+          <Button
+            variant="secondary"
+            onClick={handleReset}
+            disabled={!dirty}
+            className="!px-5"
+          >
+            {tr('filter_reset')}
+          </Button>
+          <Button
+            onClick={handleApply}
+            className="!bg-brand-700 hover:!bg-brand-800 inline-flex items-center justify-center gap-2"
+          >
+            <span>{tr('filter_apply')}</span>
+            {dirty && (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white/25 text-caption !font-extrabold">
+                {activeCount}
+              </span>
+            )}
+          </Button>
         </div>
       }
     >
-      <header className="-mt-1">
-        <h2 className="text-h2 font-extrabold text-surface-900">{tr('premium_filters')}</h2>
-        <p className="mt-1 text-caption text-surface-500">{tr('premium_filters_sub')}</p>
-        <span className="mt-3 inline-block text-micro !font-bold rounded-full bg-brand-50 text-brand-700 px-3 py-1.5 border border-brand-200">
-          {tr('filter_all_animals_showing')}
+      <header className="-mt-1 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-h2 font-extrabold text-surface-900 flex items-center gap-2">
+            <span className="grid place-items-center h-7 w-7 rounded-lg bg-brand-100 text-brand-700">
+              <Sparkles size={16} />
+            </span>
+            {tr('premium_filters')}
+          </h2>
+          <p className="mt-1.5 text-caption text-surface-500">{tr('premium_filters_sub')}</p>
+        </div>
+        <span
+          className={`shrink-0 inline-flex items-center gap-1 text-micro !font-bold rounded-md px-2 py-1 ring-1 ${
+            dirty
+              ? 'bg-brand-50 text-brand-700 ring-brand-200'
+              : 'bg-surface-100 text-surface-600 ring-surface-200'
+          }`}
+        >
+          <ShieldCheck size={11} strokeWidth={2.5} />
+          {dirty ? `${activeCount} ${tr('filter_apply')}` : tr('filter_all_animals_showing')}
         </span>
       </header>
 
       <div className="mt-5 space-y-4 pb-2">
         <div ref={(el) => (sectionRefs.current.animal = el)}>
           <FilterCard
-            icon={<Sparkles size={22} />}
+            icon={<Sparkles size={16} />}
             title={tr('pfs_section_animal_t')}
             subtitle={tr('pfs_section_animal_s')}
           >
@@ -203,7 +241,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.milkCapacity = el)}>
           <FilterCard
-            icon={<Droplets size={22} />}
+            icon={<Droplets size={16} />}
             title={tr('pfs_section_milk_t')}
             subtitle={tr('pfs_section_milk_s')}
           >
@@ -215,7 +253,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.price = el)}>
           <FilterCard
-            icon={<IndianRupee size={22} />}
+            icon={<IndianRupee size={16} />}
             title={tr('pfs_section_price_t')}
             subtitle={tr('pfs_section_price_s')}
           >
@@ -227,7 +265,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.distance = el)}>
           <FilterCard
-            icon={<MapPin size={22} />}
+            icon={<MapPin size={16} />}
             title={tr('pfs_section_distance_t')}
             subtitle={tr('pfs_section_distance_s')}
           >
@@ -239,7 +277,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.lactation = el)}>
           <FilterCard
-            icon={<Tag size={22} />}
+            icon={<Tag size={16} />}
             title={tr('pfs_section_lactation_t')}
             subtitle={tr('pfs_section_lactation_s')}
           >
@@ -251,7 +289,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.listed = el)}>
           <FilterCard
-            icon={<Calendar size={22} />}
+            icon={<Calendar size={16} />}
             title={tr('pfs_section_listed_t')}
             subtitle={tr('pfs_section_listed_s')}
             columns={1}
@@ -264,7 +302,7 @@ export default function PremiumFiltersSheet({
 
         <div ref={(el) => (sectionRefs.current.sort = el)}>
           <FilterCard
-            icon={<ArrowDownNarrowWide size={22} />}
+            icon={<ArrowDownNarrowWide size={16} />}
             title={tr('pfs_section_sort_t')}
             subtitle={tr('pfs_section_sort_s')}
           >

@@ -33,7 +33,7 @@ export default function Modal({ open, onClose, title, children, footer, size = '
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.2 }}
-            className={`relative bg-surface-0 rounded-3xl shadow-2xl w-full ${sizeClass} max-h-[90vh] flex flex-col`}
+            className={`relative bg-surface-0 rounded-2xl shadow-2xl w-full ${sizeClass} max-h-[90vh] flex flex-col`}
           >
             {title && (
               <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200">

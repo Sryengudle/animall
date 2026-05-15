@@ -3,11 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   ArrowLeft, Share2, Heart, MapPin, Phone, ChevronLeft, ChevronRight, Play, Flag,
+  Droplets, Calendar, Tag, Repeat,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useLanguage from '@/hooks/useLanguage';
-import { Avatar, StatTile } from '@/components/ui';
+import { Avatar } from '@/components/ui';
 import ReportDialog from '@/components/common/ReportDialog';
 import { DEMO_ANIMALS } from '@/constants/demoAnimals';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '@/utils/wishlist';
@@ -283,7 +284,7 @@ export default function ListingDetailPage() {
 
       {/* Body — sits BELOW the image, no negative margin / overlap */}
       <main className="mx-auto max-w-xl px-4 pt-4">
-        <article className="rounded-3xl bg-surface-0 shadow-card border border-surface-200/60 overflow-hidden">
+        <article className="rounded-2xl bg-surface-0 shadow-[0_4px_18px_-6px_rgba(15,80,55,0.12),_0_2px_4px_-2px_rgba(15,80,55,0.06)] ring-1 ring-surface-200/70 overflow-hidden">
           <div className="p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -304,12 +305,18 @@ export default function ListingDetailPage() {
                   {formatINR(animal.price)}
                 </p>
                 <span
-                  className={`mt-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-micro-caps ${
+                  className={`mt-1.5 inline-flex items-center gap-1 px-2 py-[3px] rounded-md text-micro !font-bold normal-case tracking-normal ${
                     animal.isNegotiable
-                      ? 'bg-success/15 text-success'
-                      : 'bg-surface-200 text-surface-600'
+                      ? 'bg-success/12 text-success ring-1 ring-success/25'
+                      : 'bg-surface-100 text-surface-600 ring-1 ring-surface-200'
                   }`}
                 >
+                  <span
+                    className={`inline-block h-1.5 w-1.5 rounded-full ${
+                      animal.isNegotiable ? 'bg-success' : 'bg-surface-400'
+                    }`}
+                    aria-hidden="true"
+                  />
                   {animal.isNegotiable ? tr('negotiable_toggle_label') : tr('fixed_price')}
                 </span>
               </div>
@@ -343,30 +350,40 @@ export default function ListingDetailPage() {
               );
             })()}
 
-            {/* Stats grid */}
-            {(animal.lactationLabel || animal.calving || animal.milkPerDay || animal.breed || animal.age) && (
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                {(animal.lactationLabel || animal.calving) && (
-                  <StatTile
-                    label={tr('lactation_label')}
-                    value={
-                      animal.lactationLabel
-                        ? (String(animal.lactationLabel).match(/^\d+/)?.[0] || animal.lactationLabel)
-                        : tr(`calving_${animal.calving}`) || animal.calving
-                    }
-                  />
-                )}
-                {animal.milkPerDay && (
-                  <StatTile label={tr('milk_capacity_label')} value={`${animal.milkPerDay} ${tr('lpd')}`} />
-                )}
-                {animal.breed && (
-                  <StatTile label={tr('breed_label')} value={breedLabel} />
-                )}
-                {animal.age && (
-                  <StatTile label={tr('age')} value={`${animal.age} ${tr(animal.ageUnit || 'years')}`} />
-                )}
-              </div>
-            )}
+            {/* Stats — icon-led chips, same visual language as ListingCard.
+                Each chip is small, colored by category, and skips its value if
+                empty. Breed is hidden when the title already shows it. */}
+            {(() => {
+              const stats = [];
+              const lactationVal = animal.lactationLabel
+                ? (String(animal.lactationLabel).match(/^\d+/)?.[0] || animal.lactationLabel)
+                : (animal.calving ? tr(`calving_${animal.calving}`) || animal.calving : '');
+              if (lactationVal) stats.push({ icon: Repeat, value: lactationVal, accent: 'amber' });
+              if (animal.milkPerDay) stats.push({ icon: Droplets, value: `${animal.milkPerDay} ${tr('lpd')}`, accent: 'blue' });
+              if (animal.breed && !titleText?.toLowerCase().includes(breedLabel.toLowerCase())) {
+                stats.push({ icon: Tag, value: breedLabel, accent: 'brand' });
+              }
+              if (animal.age) stats.push({ icon: Calendar, value: `${animal.age} ${tr(animal.ageUnit || 'years')}`, accent: 'brand' });
+              if (stats.length === 0) return null;
+              const palette = {
+                brand: 'bg-brand-50 text-brand-800 ring-brand-200/60',
+                amber: 'bg-accent-50 text-accent-800 ring-accent-200/60',
+                blue:  'bg-blue-50 text-blue-700 ring-blue-200/60',
+              };
+              return (
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {stats.map((s, i) => (
+                    <span
+                      key={i}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ring-1 ${palette[s.accent]}`}
+                    >
+                      <s.icon size={12} strokeWidth={2.4} />
+                      <span className="text-caption !font-bold">{s.value}</span>
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
 
             {/* Description */}
             {animal.description && (

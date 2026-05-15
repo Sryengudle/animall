@@ -26,7 +26,7 @@ function Section({ title, sub, children }) {
     <section className="mb-10">
       <h2 className="text-caption font-bold uppercase tracking-[0.12em] text-brand-700 mb-1">{title}</h2>
       {sub && <p className="text-caption text-surface-500 mb-3">{sub}</p>}
-      <div className="rounded-3xl bg-surface-0 shadow-card p-5">{children}</div>
+      <div className="rounded-2xl bg-surface-0 shadow-card p-5">{children}</div>
     </section>
   );
 }

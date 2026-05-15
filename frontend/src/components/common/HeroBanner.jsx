@@ -22,7 +22,7 @@ export default function HeroBanner({
       whileTap={{ scale: 0.98 }}
       aria-label={title}
       className={`
-        w-full bg-gradient-to-br ${gradient} rounded-3xl p-5 flex items-center gap-3
+        w-full bg-gradient-to-br ${gradient} rounded-2xl p-5 flex items-center gap-3
         text-left shadow-xl shadow-black/10 relative overflow-hidden
         focus:outline-none focus-visible:ring-4 focus-visible:ring-white/30
       `}

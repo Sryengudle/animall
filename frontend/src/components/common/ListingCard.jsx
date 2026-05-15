@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapPin, Phone, Heart, Share2, Play, ChevronLeft, ChevronRight,
+  Droplets, Calendar, Tag, Repeat,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useLanguage from '@/hooks/useLanguage';
@@ -261,12 +262,12 @@ export default function ListingCard({
   return (
     <Wrapper
       {...wrapperProps}
-      className="block rounded-3xl bg-surface-0 shadow-card overflow-hidden border border-surface-200/60 hover:shadow-lg transition-shadow"
+      className="block rounded-2xl bg-surface-0 shadow-[0_4px_18px_-6px_rgba(15,80,55,0.12),_0_2px_4px_-2px_rgba(15,80,55,0.06)] overflow-hidden ring-1 ring-surface-200/70 hover:ring-brand-200 hover:shadow-[0_8px_24px_-6px_rgba(15,80,55,0.18),_0_4px_8px_-4px_rgba(15,80,55,0.08)] transition-all"
     >
       {/* Media block: unified carousel (video + photos), swipeable, clickable dots, prev/next.
-          When the listing has no media at all, show a friendly emoji placeholder so the card
-          still has the same visual rhythm as cards with photos. */}
-      <div className="relative aspect-video bg-gradient-to-br from-surface-100 to-surface-200 overflow-hidden">
+          When the listing has no media at all, show a branded gradient placeholder with a
+          big translucent emoji + the breed name overlaid — feels intentional, not "broken". */}
+      <div className="relative aspect-video bg-gradient-to-br from-brand-100 via-brand-50 to-accent-50 overflow-hidden">
         {hasMedia ? (
           <MediaSlider
             videoUrl={videoUrl}
@@ -275,11 +276,19 @@ export default function ListingCard({
             posterUrl={posterUrl}
           />
         ) : (
-          <div className="absolute inset-0 grid place-items-center">
-            <span className="text-display-xl text-surface-400" aria-hidden="true">
+          <>
+            <span
+              className="absolute inset-0 grid place-items-center select-none"
+              style={{ fontSize: '120px', lineHeight: 1, opacity: 0.18 }}
+              aria-hidden="true"
+            >
               {emojiForType(typeKey || type)}
             </span>
-          </div>
+            <div className="absolute bottom-2 left-3 right-3 flex items-center gap-1.5">
+              <span className="text-h3 leading-none">{emojiForType(typeKey || type)}</span>
+              <span className="text-caption !font-bold text-brand-800 truncate">{title}</span>
+            </div>
+          </>
         )}
 
         {/* Top-right action icons — Save (heart) + Share. Both always shown when
@@ -329,12 +338,18 @@ export default function ListingCard({
               {formatPriceINR(price)}
             </p>
             <span
-              className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-micro-caps ${
+              className={`mt-1.5 inline-flex items-center gap-1 px-2 py-[3px] rounded-md text-micro !font-bold normal-case tracking-normal ${
                 isNegotiable
-                  ? 'bg-success/15 text-success'
-                  : 'bg-surface-200 text-surface-600'
+                  ? 'bg-success/12 text-success ring-1 ring-success/25'
+                  : 'bg-surface-100 text-surface-600 ring-1 ring-surface-200'
               }`}
             >
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  isNegotiable ? 'bg-success' : 'bg-surface-400'
+                }`}
+                aria-hidden="true"
+              />
               {isNegotiable ? tr('negotiable_toggle_label') : tr('fixed_price')}
             </span>
           </div>
@@ -370,27 +385,33 @@ export default function ListingCard({
           );
         })()}
 
-        {/* Row 3: stats as compact chips. Skips breed if it's already in the
-            title to avoid showing "Jaffarabadi · Jaffarabadi". */}
+        {/* Row 3: stats as icon-led chips. Each chip has a small lucide icon
+            that hints at the field's meaning (no need to read the label).
+            Skips breed if it's already in the title to avoid duplication. */}
         {(() => {
           const stats = [];
-          if (lactationLabel) stats.push({ label: tr('lactation_label'), value: lactationLabel });
-          if (milkPerDay) stats.push({ label: tr('milk_capacity_label'), value: `${milkPerDay} ${tr('lpd')}` });
+          if (lactationLabel) stats.push({ icon: Repeat, value: lactationLabel, accent: 'amber' });
+          if (milkPerDay) stats.push({ icon: Droplets, value: `${milkPerDay} ${tr('lpd')}`, accent: 'blue' });
           if (breedLabel && !title?.toLowerCase().includes(breedLabel.toLowerCase())) {
-            stats.push({ label: tr('breed_label'), value: breedLabel });
+            stats.push({ icon: Tag, value: breedLabel, accent: 'brand' });
           }
-          if (age) stats.push({ label: tr('age'), value: `${age} ${tr(ageUnit || 'years')}` });
+          if (age) stats.push({ icon: Calendar, value: `${age} ${tr(ageUnit || 'years')}`, accent: 'brand' });
 
           if (stats.length === 0) return null;
+          const palette = {
+            brand: 'bg-brand-50 text-brand-800 ring-brand-200/60',
+            amber: 'bg-accent-50 text-accent-800 ring-accent-200/60',
+            blue:  'bg-blue-50 text-blue-700 ring-blue-200/60',
+          };
           return (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {stats.map((s, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-baseline gap-1 rounded-full bg-brand-50/70 px-2.5 py-1"
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ring-1 ${palette[s.accent]}`}
                 >
-                  <span className="text-micro-caps text-surface-500">{s.label}</span>
-                  <span className="text-caption !font-bold text-surface-900">{s.value}</span>
+                  <s.icon size={11} strokeWidth={2.4} />
+                  <span className="text-caption !font-bold">{s.value}</span>
                 </span>
               ))}
             </div>

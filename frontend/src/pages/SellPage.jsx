@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Camera, MapPin, IndianRupee, Milk, Info, ChevronDown, Award, Repeat,
+  Camera, MapPin, IndianRupee, Milk, Info, ChevronDown, Award, Repeat, Calendar,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -32,6 +32,11 @@ const ANIMAL_TYPES = [
   { key: 'chicken', label: 'Chicken' },
 ];
 
+// Per-type emoji used to add a visual cue to the animal-type chips.
+const ANIMAL_EMOJI = {
+  cow: '🐄', buffalo: '🐃', goat: '🐐', sheep: '🐑', chicken: '🐔',
+};
+
 const BREEDS_BY_TYPE = {
   cow:     ['jersey_cross', 'hf', 'gir', 'sahiwal', 'khillar', 'other'],
   buffalo: ['murrah', 'jaffarabadi', 'haryana', 'surti', 'mehsana', 'other'],
@@ -52,12 +57,25 @@ const MILK_TYPES = new Set(['cow', 'buffalo']);
 function SectionHeader({ icon: Icon, label, required }) {
   return (
     <header className="flex items-center gap-2 mb-3">
-      <span className="grid place-items-center w-7 h-7 rounded-lg bg-surface-100 text-surface-700">
+      <span className="grid place-items-center w-7 h-7 rounded-lg bg-brand-100 text-brand-700">
         <Icon size={16} />
       </span>
       <h3 className="text-body-lg font-extrabold text-surface-900 leading-tight">{label}</h3>
       {required && <span className="text-accent-600 text-body-sm leading-none -mt-1">*</span>}
     </header>
+  );
+}
+
+// Subtle card wrapper for each form section. Same visual language as the
+// listing card (rounded-2xl, emerald-tinted shadow, surface-200 ring) so the
+// form feels like part of the same design system instead of a flat list.
+function SectionCard({ children, className = '' }) {
+  return (
+    <section
+      className={`rounded-2xl bg-surface-0 p-4 ring-1 ring-surface-200/70 shadow-[0_2px_8px_-3px_rgba(15,80,55,0.08)] ${className}`}
+    >
+      {children}
+    </section>
   );
 }
 
@@ -135,6 +153,8 @@ export default function SellPage() {
   const [location, setLocation] = useState('');
   const [address, setAddress] = useState({ ...EMPTY_ADDRESS, ...(user?.address || {}) });
   const [isNegotiable, setIsNegotiable] = useState(true);
+  const [age, setAge] = useState('');
+  const [ageUnit, setAgeUnit] = useState('years');
 
   // Optional new media (uploaded → appended to existing on PUT, or required on POST)
   const [mainFile, setMainFile] = useState(null);
@@ -179,6 +199,8 @@ export default function SellPage() {
     setDescription(editingAnimal.description || '');
     setLocation(editingAnimal.location || '');
     setIsNegotiable(editingAnimal.isNegotiable !== false);
+    setAge(editingAnimal.age ? String(editingAnimal.age) : '');
+    setAgeUnit(editingAnimal.ageUnit || 'years');
 
     // Map existing media into the 3 tile slots so the seller can see what's
     // currently attached. images[0] → main photo, images[1] → udder photo,
@@ -199,7 +221,7 @@ export default function SellPage() {
   // main photo without picking a new one, block submit.
   const hasMainMedia = mainFile || existingMain;
   const canPost = !!(
-    animal && breed && price && location
+    animal && breed && price && location && age
     && (!showMilk || (lactation && milk))
     && (isEditMode ? hasMainMedia : mainFile)
   );
@@ -218,8 +240,8 @@ export default function SellPage() {
     fd.append('type', animal);
     fd.append('price', String(price));
     fd.append('location', location);
-    fd.append('age', '3'); // placeholder until we add an age field to the form
-    fd.append('ageUnit', 'years');
+    fd.append('age', String(Number(age) || 0));
+    fd.append('ageUnit', ageUnit);
     fd.append('breed', breed);
     fd.append('isNegotiable', String(isNegotiable));
     if (showMilk) {
@@ -290,17 +312,21 @@ export default function SellPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-7">
-          <section>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <SectionCard>
             <SectionHeader icon={CowIcon} label={tr('which_animal')} required />
             <ChipSelect
               value={animal}
               onChange={(v) => { setAnimal(v); setBreed(''); setLactation(''); }}
-              options={ANIMAL_TYPES.map((a) => ({ key: a.key, label: tr(a.key) || a.label }))}
+              options={ANIMAL_TYPES.map((a) => ({
+                key: a.key,
+                label: tr(a.key) || a.label,
+                icon: ANIMAL_EMOJI[a.key],
+              }))}
             />
-          </section>
+          </SectionCard>
 
-          <section>
+          <SectionCard>
             <SectionHeader icon={Award} label={tr('breed_label')} required />
             <ChipSelect
               value={breed}
@@ -310,21 +336,53 @@ export default function SellPage() {
                 label: (tr(`breed_${animal}_${b}`) || b).toUpperCase(),
               }))}
             />
-          </section>
+          </SectionCard>
+
+          {/* Age section — number + unit (years / months) toggle. */}
+          <SectionCard>
+            <SectionHeader icon={Calendar} label={tr('age')} required />
+            <div className="flex items-stretch gap-2">
+              <div className="flex-1 flex items-stretch rounded-2xl bg-surface-0 border border-surface-200 overflow-hidden focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 transition-colors">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                  placeholder={ageUnit === 'years' ? '3' : '6'}
+                  className="flex-1 px-4 py-3 outline-none border-none bg-transparent text-surface-900 placeholder:text-surface-400 text-body-sm font-medium min-w-0"
+                />
+              </div>
+              <div className="inline-flex rounded-2xl bg-surface-100 p-1">
+                {['years', 'months'].map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setAgeUnit(u)}
+                    aria-pressed={ageUnit === u}
+                    className={`px-3 py-1.5 rounded-xl text-caption !font-bold transition-colors ${
+                      ageUnit === u ? 'bg-surface-0 text-brand-800 shadow-sm' : 'text-surface-600'
+                    }`}
+                  >
+                    {tr(u)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </SectionCard>
 
           {showMilk && (
-            <section>
+            <SectionCard>
               <SectionHeader icon={Repeat} label={tr('which_lactation')} required />
               <ChipSelect
                 value={lactation}
                 onChange={setLactation}
                 options={LACTATIONS.map((l) => ({ key: l.key, label: tr(`calving_${l.key}`) || l.label }))}
               />
-            </section>
+            </SectionCard>
           )}
 
           {showMilk && (
-            <section>
+            <SectionCard>
               <SectionHeader icon={Milk} label={tr('current_milk_per_day')} required />
               <Helper>{tr('current_milk_helper')}</Helper>
               <SuffixedInput
@@ -335,10 +393,10 @@ export default function SellPage() {
                 placeholder="10"
                 suffix={tr('litre')}
               />
-            </section>
+            </SectionCard>
           )}
 
-          <section>
+          <SectionCard>
             <SectionHeader icon={IndianRupee} label={tr('price_label')} required />
             <Helper>{tr('price_helper')}</Helper>
             <SuffixedInput
@@ -358,9 +416,9 @@ export default function SellPage() {
                 onChange={setIsNegotiable}
               />
             </div>
-          </section>
+          </SectionCard>
 
-          <section>
+          <SectionCard>
             <SectionHeader icon={Camera} label={tr('add_video_or_photo')} required={!isEditMode} />
             <Helper>{tr('add_video_or_photo_hint')}</Helper>
             <div className="grid grid-cols-2 gap-3">
@@ -408,22 +466,27 @@ export default function SellPage() {
                 {tr('edit_existing_media_hint')}
               </p>
             )}
-          </section>
+          </SectionCard>
 
-          <section>
+          <SectionCard>
             <button
               type="button"
               onClick={() => setMoreOpen((o) => !o)}
-              className="w-full flex items-center justify-between gap-3 rounded-2xl bg-surface-0 border-2 border-brand-200 px-4 py-3.5 text-brand-800 font-bold shadow-card active:scale-[0.99] transition-transform"
+              className="w-full flex items-center justify-between gap-3 text-brand-800 font-bold active:scale-[0.99] transition-transform"
             >
-              <span>{tr('add_more_information')}</span>
+              <span className="inline-flex items-center gap-2">
+                <span className="grid place-items-center w-7 h-7 rounded-lg bg-brand-100 text-brand-700">
+                  <Info size={16} />
+                </span>
+                {tr('add_more_information')}
+              </span>
               <ChevronDown
                 size={20}
                 className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`}
               />
             </button>
             {moreOpen && (
-              <div className="mt-3 rounded-2xl bg-surface-0 p-4 shadow-card">
+              <div className="mt-3">
                 <label className="block text-caption !font-bold text-surface-900 mb-2">
                   {tr('detail_description')}
                 </label>
@@ -436,9 +499,9 @@ export default function SellPage() {
                 />
               </div>
             )}
-          </section>
+          </SectionCard>
 
-          <section>
+          <SectionCard>
             <SectionHeader icon={MapPin} label={tr('location_label')} required />
             <Helper>{tr('location_helper')}</Helper>
             <div className="relative">
@@ -457,7 +520,7 @@ export default function SellPage() {
                 {tr('loc_change')}
               </button>
             </div>
-          </section>
+          </SectionCard>
         </form>
       </main>
 

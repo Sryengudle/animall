@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component {
 
     return (
       <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-b from-green-50 to-accent-50">
-        <div className="bg-surface-0 rounded-3xl shadow-card border border-surface-200 p-8 max-w-md w-full text-center">
+        <div className="bg-surface-0 rounded-2xl shadow-card border border-surface-200 p-8 max-w-md w-full text-center">
           <div className="w-20 h-20 mx-auto rounded-full bg-red-50 flex items-center justify-center text-display mb-4">
             😔
           </div>

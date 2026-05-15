@@ -17,7 +17,7 @@ import useLanguage from '@/hooks/useLanguage';
 
 function EmptyState({ tr, onSell }) {
   return (
-    <div className="mx-4 mt-4 rounded-3xl bg-surface-0 shadow-card px-6 py-16 text-center">
+    <div className="mx-4 mt-4 rounded-2xl bg-surface-0 shadow-card px-6 py-16 text-center">
       <h2 className="text-h1 font-extrabold text-brand-800">{tr('no_animals_listed')}</h2>
       <p className="mt-3 text-body text-surface-500 max-w-xs mx-auto leading-relaxed">
         {tr('no_animals_listed_sub')}
