@@ -2,10 +2,10 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { ArrowLeft } from 'lucide-react';
-import useLanguage from '../../hooks/useLanguage';
+import useLanguage from '@/hooks/useLanguage';
 import LanguageSwitcher from './LanguageSwitcher';
-import IconButton from '../ui/IconButton';
-import Avatar from '../ui/Avatar';
+import IconButton from '@/components/ui/IconButton';
+import Avatar from '@/components/ui/Avatar';
 
 // Pashu Mandi-style header. Solid brand-800 (the deepest emerald in our scale —
 // emotionally the closest substitute for the reference's deep maroon, kept since
@@ -29,7 +29,7 @@ function InnerHeader({ title, showBack, onBack }) {
               className="text-white hover:bg-white/15"
             />
           )}
-          <h1 className="text-base font-bold text-white truncate">{title}</h1>
+          <h1 className="text-h3 text-white truncate">{title}</h1>
         </div>
         <LanguageSwitcher variant="solid" />
       </div>
@@ -63,7 +63,7 @@ function HomeHeader({ showSellCta }) {
             aria-hidden="true"
           >
             <span className="relative inline-flex items-center justify-center">
-              <span className="text-lg leading-none">🐄</span>
+              <span className="text-h3 leading-none">🐄</span>
               <span className="absolute -bottom-1 -right-1 text-[9px] font-extrabold text-white bg-brand-600 rounded-full w-3.5 h-3.5 grid place-items-center border border-white/30">
                 ₹
               </span>
@@ -71,10 +71,10 @@ function HomeHeader({ showSellCta }) {
           </span>
 
           <span className="text-left leading-tight min-w-0">
-            <span className="block text-white font-extrabold text-base tracking-tight truncate">
+            <span className="block text-h3 text-white tracking-tight truncate">
               {tr('app_name')}
             </span>
-            <span className="block text-white/85 text-[10px] font-medium truncate">
+            <span className="block text-micro-caps !font-medium normal-case tracking-normal text-white/85 truncate">
               {tr('app_tagline')}
             </span>
           </span>
@@ -85,7 +85,7 @@ function HomeHeader({ showSellCta }) {
             <button
               type="button"
               onClick={() => navigate('/sell')}
-              className="hidden sm:inline-flex items-center px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white text-xs font-bold border border-white/25"
+              className="hidden sm:inline-flex items-center px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all text-white text-caption font-bold border border-white/25"
             >
               {tr('sell_livestock')}
             </button>

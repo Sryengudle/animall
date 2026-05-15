@@ -41,7 +41,7 @@ export default function BottomSheet({ open, onClose, title, children, footer }) 
             </div>
             {title && (
               <div className="flex items-center justify-between px-6 pb-3 border-b border-surface-200 shrink-0">
-                <h3 className="text-base font-bold text-surface-900">{title}</h3>
+                <h3 className="text-body font-bold text-surface-900">{title}</h3>
                 <IconButton icon={X} label="Close" size="sm" variant="ghost" onClick={onClose} />
               </div>
             )}

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setOnline } from '../store/slices/uiSlice';
+import { setOnline } from '@/store/slices/uiSlice';
 
 /**
  * Hook: tracks online/offline status and syncs to Redux.

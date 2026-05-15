@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../hooks/useLanguage';
-import BottomSheet from '../ui/BottomSheet';
+import useLanguage from '@/hooks/useLanguage';
+import BottomSheet from '@/components/ui/BottomSheet';
 
 // Language-picker bottom sheet matching the Pashu Mandi reference (image 7):
 // 2-column grid of cards with landmark imagery on a dark scrim. Selected card
@@ -34,8 +34,8 @@ export default function LanguageSheet({ open, onClose, value, onChange }) {
   return (
     <BottomSheet open={open} onClose={onClose}>
       <header className="text-center mb-1">
-        <h2 className="text-2xl font-extrabold text-surface-900">Choose Language</h2>
-        <p className="mt-1 text-sm text-surface-500">{tr('edit_profile_language') || 'Select your preferred language'}</p>
+        <h2 className="text-h1 font-extrabold text-surface-900">Choose Language</h2>
+        <p className="mt-1 text-body-sm text-surface-500">{tr('edit_profile_language') || 'Select your preferred language'}</p>
       </header>
 
       <div className="mt-6 grid grid-cols-2 gap-3 pb-2">
@@ -67,13 +67,13 @@ export default function LanguageSheet({ open, onClose, value, onChange }) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
               <div className="absolute inset-x-0 bottom-0 p-4">
-                <p className="text-white text-2xl font-extrabold leading-tight drop-shadow">
+                <p className="text-white text-h1 font-extrabold leading-tight drop-shadow">
                   {l.label}
                 </p>
-                <p className="text-white/90 text-sm font-medium drop-shadow">{l.sub}</p>
+                <p className="text-white/90 text-body-sm font-medium drop-shadow">{l.sub}</p>
               </div>
               {active && (
-                <span className="absolute top-2.5 right-2.5 grid place-items-center h-7 w-7 rounded-full bg-brand-600 text-white text-sm font-bold shadow-md">
+                <span className="absolute top-2.5 right-2.5 grid place-items-center h-7 w-7 rounded-full bg-brand-600 text-white text-body-sm font-bold shadow-md">
                   ✓
                 </span>
               )}

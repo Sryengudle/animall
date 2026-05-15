@@ -4,9 +4,9 @@
 import { useState } from 'react';
 import { Droplets, IndianRupee, MapPin, Filter, Calendar, ArrowDownNarrowWide, Sparkles, Tag } from 'lucide-react';
 
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
-import ListingCard from '../components/common/ListingCard';
+import Header from '@/components/common/Header';
+import BottomNav from '@/components/common/BottomNav';
+import ListingCard from '@/components/common/ListingCard';
 import {
   Button,
   ChipSelect,
@@ -19,13 +19,13 @@ import {
   StickyFAB,
   MediaUploadTile,
   BottomSheet,
-} from '../components/ui';
+} from '@/components/ui';
 
 function Section({ title, sub, children }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-brand-700 mb-1">{title}</h2>
-      {sub && <p className="text-xs text-surface-500 mb-3">{sub}</p>}
+      <h2 className="text-caption font-bold uppercase tracking-[0.12em] text-brand-700 mb-1">{title}</h2>
+      {sub && <p className="text-caption text-surface-500 mb-3">{sub}</p>}
       <div className="rounded-3xl bg-surface-0 shadow-card p-5">{children}</div>
     </section>
   );
@@ -61,7 +61,7 @@ export default function PreviewPage() {
       <Header title="Redesign Preview" showBack />
 
       <main className="mx-auto max-w-2xl px-4 pt-5">
-        <p className="text-sm text-surface-600 mb-4 leading-relaxed">
+        <p className="text-body-sm text-surface-600 mb-4 leading-relaxed">
           Internal showcase for the redesign V2 primitives — all components below use
           the existing emerald + warm amber brand. Tap things, they're interactive.
         </p>
@@ -76,7 +76,7 @@ export default function PreviewPage() {
             <a
               key={p.to}
               href={p.to}
-              className="text-center text-xs font-bold px-3 py-2.5 rounded-2xl bg-brand-700 text-white hover:bg-brand-800 active:scale-95 transition-all shadow-card"
+              className="text-center text-caption font-bold px-3 py-2.5 rounded-2xl bg-brand-700 text-white hover:bg-brand-800 active:scale-95 transition-all shadow-card"
             >
               {p.label}
             </a>
@@ -88,7 +88,7 @@ export default function PreviewPage() {
           title="ChipSelect"
           sub="Single-select pill row. Used for animal type, breed, lactation."
         >
-          <p className="text-xs font-bold text-surface-700 mb-2">Which animal?</p>
+          <p className="text-caption font-bold text-surface-700 mb-2">Which animal?</p>
           <ChipSelect
             value={animal}
             onChange={setAnimal}
@@ -99,7 +99,7 @@ export default function PreviewPage() {
               { key: 'goat',    label: 'Goat' },
             ]}
           />
-          <p className="text-xs font-bold text-surface-700 mb-2 mt-5">Which lactation?</p>
+          <p className="text-caption font-bold text-surface-700 mb-2 mt-5">Which lactation?</p>
           <ChipSelect
             value={lactation}
             onChange={setLactation}
@@ -110,7 +110,7 @@ export default function PreviewPage() {
               { key: 'other',  label: 'Other' },
             ]}
           />
-          <p className="text-xs text-surface-500 mt-4">
+          <p className="text-caption text-surface-500 mt-4">
             Selected: <code className="font-mono">{animal}</code> /{' '}
             <code className="font-mono">{lactation}</code>
           </p>
@@ -153,7 +153,7 @@ export default function PreviewPage() {
           sub="6-digit underline input. Used for OTP screen and the pincode field in location sheet."
         >
           <OtpInput value={otp} onChange={setOtp} length={6} />
-          <p className="text-xs text-surface-500 mt-4 text-center">
+          <p className="text-caption text-surface-500 mt-4 text-center">
             Value: <code className="font-mono">{otp || '(empty)'}</code>
           </p>
         </Section>
@@ -163,7 +163,7 @@ export default function PreviewPage() {
           title="Language Select"
           sub="Used in Edit Profile for picking display language. Native dropdown — familiar, accessible, scannable."
         >
-          <label className="block text-xs font-bold text-surface-700 mb-2">
+          <label className="block text-caption font-bold text-surface-700 mb-2">
             भाषा / Language
           </label>
           <Select
@@ -174,7 +174,7 @@ export default function PreviewPage() {
             <option value="hi">हिंदी (Hindi)</option>
             <option value="mr">मराठी (Marathi)</option>
           </Select>
-          <p className="text-xs text-surface-500 mt-3">
+          <p className="text-caption text-surface-500 mt-3">
             Selected: <code className="font-mono">{lang}</code>
           </p>
         </Section>
@@ -307,7 +307,7 @@ export default function PreviewPage() {
           </div>
         </Section>
 
-        <p className="text-xs text-center text-surface-400 mt-8 mb-4">
+        <p className="text-caption text-center text-surface-400 mt-8 mb-4">
           Header above and BottomNav below are also part of the redesign — both already in place.
         </p>
       </main>
@@ -331,7 +331,7 @@ export default function PreviewPage() {
           </div>
         }
       >
-        <p className="text-sm text-surface-500 mb-5">Choose right animals quickly without typing</p>
+        <p className="text-body-sm text-surface-500 mb-5">Choose right animals quickly without typing</p>
         <div className="space-y-4">
           <FilterCard
             icon={<Sparkles size={22} />}

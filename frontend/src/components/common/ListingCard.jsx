@@ -1,12 +1,15 @@
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  MapPin, Phone, Flag, Share2, Play, ChevronLeft, ChevronRight,
+  MapPin, Phone, Heart, Share2, Play, ChevronLeft, ChevronRight,
 } from 'lucide-react';
-import useLanguage from '../../hooks/useLanguage';
-import Avatar from '../ui/Avatar';
-import StatTile from '../ui/StatTile';
+import toast from 'react-hot-toast';
+import useLanguage from '@/hooks/useLanguage';
+import Avatar from '@/components/ui/Avatar';
+import { isWishlisted, toggleWishlist, subscribeWishlist } from '@/utils/wishlist';
+import { shareOrCopy } from '@/utils/share';
+import { mapsUrl } from '@/utils/mapsUrl';
 
 // Rich animal-listing card matching the Pashu Mandi reference (image 8).
 // Media block prefers video; falls back to first photo from `images`; falls back
@@ -27,6 +30,17 @@ function timeAgo(t, tr) {
 function formatPriceINR(n) {
   if (n == null) return '';
   return `₹${Number(n).toLocaleString('en-IN')}`;
+}
+
+// Fallback emoji for the media slot when a listing has no photos or video.
+// Tries the localized animal label first, then falls back by raw type.
+const TYPE_EMOJI = {
+  cow: '🐄', buffalo: '🐃', goat: '🐐', sheep: '🐑', chicken: '🐔', pig: '🐖',
+};
+function emojiForType(type) {
+  if (!type) return '🐾';
+  const key = String(type).toLowerCase();
+  return TYPE_EMOJI[key] || '🐾';
 }
 
 // Swipeable media carousel — combines optional video + photo array into one
@@ -105,13 +119,13 @@ function MediaSlider({ videoUrl, images, title, posterUrl }) {
                 className="absolute inset-0 w-full h-full object-cover -z-[1]"
               />
             )}
-            <span className="relative grid place-items-center h-14 w-14 rounded-full bg-white/90 text-brand-800 shadow-lg">
-              <Play size={26} fill="currentColor" />
+            <span className="relative grid place-items-center h-12 w-12 rounded-full bg-white/95 text-brand-800 shadow-lg">
+              <Play size={22} fill="currentColor" />
             </span>
           </button>
         )
       ) : broken ? (
-        <span className="absolute inset-0 grid place-items-center text-5xl text-surface-400">
+        <span className="absolute inset-0 grid place-items-center text-display-xl text-surface-400">
           🐾
         </span>
       ) : (
@@ -124,24 +138,25 @@ function MediaSlider({ videoUrl, images, title, posterUrl }) {
         />
       )}
 
-      {/* Prev / Next arrows — semi-transparent so they don't dominate, big enough to tap */}
+      {/* Prev / Next arrows — small + subtle. Swipe is the primary gesture; these
+          are just an affordance for users who don't realize they can swipe. */}
       {slides.length > 1 && (
         <>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(-1); }}
             aria-label="Previous"
-            className="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors"
+            className="absolute left-2 top-1/2 -translate-y-1/2 grid place-items-center h-8 w-8 rounded-full bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm transition-colors"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={16} />
           </button>
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); go(1); }}
             aria-label="Next"
-            className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-9 w-9 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 grid place-items-center h-8 w-8 rounded-full bg-black/35 text-white hover:bg-black/55 backdrop-blur-sm transition-colors"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={16} />
           </button>
         </>
       )}
@@ -182,6 +197,11 @@ export default function ListingCard({
   id,
   title,
   type,
+  typeKey,
+  breedLabel,
+  age,
+  ageUnit,
+  description,
   price,
   isNegotiable,
   location,
@@ -196,8 +216,6 @@ export default function ListingCard({
   sellerPhone,
   whatsappPhone,
   createdAt,
-  onFlag,
-  onShare,
 }) {
   const { tr } = useLanguage();
   const detailHref = id ? `/buy/${id}` : null;
@@ -206,6 +224,34 @@ export default function ListingCard({
   const waHref = whatsappPhone || sellerPhone
     ? `https://wa.me/91${(whatsappPhone || sellerPhone).replace(/\D/g, '').slice(-10)}`
     : null;
+
+  // Live-update the heart when wishlist changes elsewhere (e.g. detail page).
+  const [liked, setLiked] = useState(() => (id ? isWishlisted(id) : false));
+  useEffect(() => {
+    if (!id) return undefined;
+    return subscribeWishlist((ids) => setLiked(ids.includes(id)));
+  }, [id]);
+
+  function handleSave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!id) return;
+    const nowLiked = toggleWishlist(id);
+    setLiked(nowLiked);
+    toast.success(nowLiked ? tr('saved') : tr('removed_from_saved'));
+  }
+
+  function handleShare(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = detailHref ? `${window.location.origin}${detailHref}` : window.location.href;
+    shareOrCopy({
+      title: title || tr('app_name'),
+      text: `${title || ''} — ${formatPriceINR(price)} · ${location || ''}`.trim(),
+      url,
+      tr,
+    });
+  }
 
   const hasImages = Array.isArray(images) && images.length > 0;
   const hasMedia = !!videoUrl || hasImages;
@@ -217,136 +263,189 @@ export default function ListingCard({
       {...wrapperProps}
       className="block rounded-3xl bg-surface-0 shadow-card overflow-hidden border border-surface-200/60 hover:shadow-lg transition-shadow"
     >
-      {/* Media block: unified carousel (video + photos), swipeable, clickable dots, prev/next */}
-      {hasMedia && (
-        <div className="relative aspect-video bg-surface-100 overflow-hidden">
+      {/* Media block: unified carousel (video + photos), swipeable, clickable dots, prev/next.
+          When the listing has no media at all, show a friendly emoji placeholder so the card
+          still has the same visual rhythm as cards with photos. */}
+      <div className="relative aspect-video bg-gradient-to-br from-surface-100 to-surface-200 overflow-hidden">
+        {hasMedia ? (
           <MediaSlider
             videoUrl={videoUrl}
             images={images}
             title={title}
             posterUrl={posterUrl}
           />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center">
+            <span className="text-display-xl text-surface-400" aria-hidden="true">
+              {emojiForType(typeKey || type)}
+            </span>
+          </div>
+        )}
 
-          {/* Top-right action icons */}
-          {(onFlag || onShare) && (
-            <div className="absolute top-3 right-3 flex gap-2">
-              {onFlag && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); onFlag?.(id); }}
-                  aria-label="Report listing"
-                  className="grid place-items-center h-9 w-9 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors backdrop-blur-sm"
-                >
-                  <Flag size={14} />
-                </button>
-              )}
-              {onShare && (
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); onShare?.(id); }}
-                  aria-label="Share listing"
-                  className="grid place-items-center h-9 w-9 rounded-full bg-black/40 text-white hover:bg-black/60 transition-colors backdrop-blur-sm"
-                >
-                  <Share2 size={14} />
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+        {/* Top-right action icons — Save (heart) + Share. Both always shown when
+            the card represents a real listing (i.e. has an id). */}
+        {id && (
+          <div className="absolute top-2.5 right-2.5 flex gap-1.5 z-10">
+            <button
+              type="button"
+              onClick={handleSave}
+              aria-label={liked ? tr('removed_from_saved') : tr('save')}
+              aria-pressed={liked}
+              className={`grid place-items-center h-8 w-8 rounded-full backdrop-blur-sm transition-colors ${
+                liked ? 'bg-red-500 text-white' : 'bg-black/35 text-white hover:bg-black/55'
+              }`}
+            >
+              <Heart size={14} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
+            </button>
+            <button
+              type="button"
+              onClick={handleShare}
+              aria-label={tr('share')}
+              className="grid place-items-center h-8 w-8 rounded-full bg-black/35 text-white hover:bg-black/55 transition-colors backdrop-blur-sm"
+            >
+              <Share2 size={14} />
+            </button>
+          </div>
+        )}
+      </div>
 
-      {/* Body */}
-      <div className="p-4 sm:p-5">
+      {/* Body — compact 4-section rhythm: title/price, meta, stats, seller.
+          No dividers between sections — spacing carries the eye. */}
+      <div className="p-4">
+        {/* Row 1: title + type on the left, price + negotiable chip on the right */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-surface-500">
-              {timeAgo(createdAt, tr)}
-            </p>
-            <h3 className="mt-1 text-lg font-extrabold text-surface-900 leading-tight">
+            <h3 className="text-body-lg !font-extrabold text-surface-900 leading-tight truncate">
               {title}
-              {type && <span className="text-surface-700 font-bold"> {type}</span>}
             </h3>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="text-xl font-extrabold text-brand-800 leading-none">
-              {formatPriceINR(price)}
-            </p>
-            {isNegotiable && (
-              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-700/70 mt-1">
-                {tr('negotiable_only')}
+            {type && (
+              <p className="mt-0.5 text-caption text-surface-600 truncate">
+                {type} · {timeAgo(createdAt, tr)}
               </p>
             )}
           </div>
+          <div className="text-right shrink-0">
+            <p className="text-body-lg !font-extrabold text-brand-800 leading-none">
+              {formatPriceINR(price)}
+            </p>
+            <span
+              className={`mt-1 inline-flex items-center px-1.5 py-0.5 rounded-full text-micro-caps ${
+                isNegotiable
+                  ? 'bg-success/15 text-success'
+                  : 'bg-surface-200 text-surface-600'
+              }`}
+            >
+              {isNegotiable ? tr('negotiable_toggle_label') : tr('fixed_price')}
+            </span>
+          </div>
         </div>
 
-        {/* Location */}
-        {location && (
-          <p className="mt-2 flex items-center gap-1.5 text-sm text-surface-700">
-            <MapPin size={14} className="text-surface-500 shrink-0" />
-            <span className="underline-offset-2 underline decoration-surface-300">
-              {location}
-              {distanceKm != null && (
-                <span className="text-surface-500"> (approx. <b>{distanceKm} km</b>)</span>
-              )}
-            </span>
+        {/* Row 2: location — tap to open Google Maps. stopPropagation so it
+            doesn't trigger the surrounding card-level <Link>. */}
+        {location && (() => {
+          const url = mapsUrl({ location });
+          const inner = (
+            <>
+              <MapPin size={12} className="mt-[2px] text-surface-400 shrink-0" />
+              <span className="min-w-0 truncate">
+                {location}
+                {distanceKm != null && (
+                  <span className="text-surface-400"> · {distanceKm} km</span>
+                )}
+              </span>
+            </>
+          );
+          return url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 flex items-start gap-1 text-caption text-surface-600 hover:text-brand-700 transition-colors"
+            >
+              {inner}
+            </a>
+          ) : (
+            <p className="mt-2 flex items-start gap-1 text-caption text-surface-600">{inner}</p>
+          );
+        })()}
+
+        {/* Row 3: stats as compact chips. Skips breed if it's already in the
+            title to avoid showing "Jaffarabadi · Jaffarabadi". */}
+        {(() => {
+          const stats = [];
+          if (lactationLabel) stats.push({ label: tr('lactation_label'), value: lactationLabel });
+          if (milkPerDay) stats.push({ label: tr('milk_capacity_label'), value: `${milkPerDay} ${tr('lpd')}` });
+          if (breedLabel && !title?.toLowerCase().includes(breedLabel.toLowerCase())) {
+            stats.push({ label: tr('breed_label'), value: breedLabel });
+          }
+          if (age) stats.push({ label: tr('age'), value: `${age} ${tr(ageUnit || 'years')}` });
+
+          if (stats.length === 0) return null;
+          return (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {stats.map((s, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-baseline gap-1 rounded-full bg-brand-50/70 px-2.5 py-1"
+                >
+                  <span className="text-micro-caps text-surface-500">{s.label}</span>
+                  <span className="text-caption !font-bold text-surface-900">{s.value}</span>
+                </span>
+              ))}
+            </div>
+          );
+        })()}
+
+        {/* Optional description preview — 2-line clamp */}
+        {description && (
+          <p className="mt-3 text-caption text-surface-600 leading-snug line-clamp-2">
+            {description}
           </p>
         )}
 
-        {/* Stats grid */}
-        {(lactationLabel || milkPerDay) && (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {lactationLabel && (
-              <StatTile label={tr('lactation_label')} value={lactationLabel} />
-            )}
-            {milkPerDay && (
-              <StatTile label={tr('milk_capacity_label')} value={`${milkPerDay} ${tr('lpd')}`} />
-            )}
-          </div>
-        )}
-
-        {/* Seller row — icon-only Call + WhatsApp on the right */}
+        {/* Row 4: seller — subtle, no divider line (spacing only) */}
         {sellerName && (
-          <>
-            <div className="mt-4 border-t border-surface-200" />
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <Avatar name={sellerInitial || sellerName} size="sm" />
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-surface-900 truncate leading-tight">{sellerName}</p>
-                  <p className="text-[11px] font-semibold text-success leading-tight">
-                    {tr('livestock_owner')}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                {callHref && (
-                  <a
-                    href={callHref}
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={tr('call_now')}
-                    className="grid place-items-center h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 active:scale-95 transition-all shadow-sm"
-                  >
-                    <Phone size={16} fill="currentColor" strokeWidth={0} />
-                  </a>
-                )}
-                {waHref && (
-                  <a
-                    href={waHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="WhatsApp"
-                    className="grid place-items-center h-9 w-9 rounded-full bg-[#25D366] text-white hover:bg-[#1ebe57] active:scale-95 transition-all shadow-sm"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.07 1.6 5.85L2 22l4.39-1.7a9.86 9.86 0 0 0 5.65 1.78h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.84 9.84 0 0 0 12.04 2zm5.83 14.07c-.25.7-1.42 1.32-1.98 1.41-.5.07-1.14.1-1.84-.12-.42-.13-.96-.31-1.66-.6-2.91-1.26-4.81-4.19-4.96-4.39-.15-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.01-2.41.25-.29.55-.36.74-.36h.53c.17 0 .39-.06.61.46.25.6.84 2.05.91 2.2.07.15.12.32.02.52-.1.2-.15.32-.29.5-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.62 2.02 1.11.99 2.04 1.3 2.34 1.45.29.15.46.12.63-.07.17-.2.74-.86.94-1.16.2-.3.39-.25.66-.15.27.1 1.71.81 2 .96.29.15.49.22.56.34.07.12.07.7-.18 1.39z"/>
-                    </svg>
-                  </a>
-                )}
+          <div className="mt-4 pt-3 flex items-center justify-between gap-3 border-t border-surface-100">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Avatar name={sellerInitial || sellerName} size="sm" />
+              <div className="min-w-0">
+                <p className="text-caption !font-bold text-surface-900 truncate leading-tight">
+                  {sellerName}
+                </p>
+                <p className="text-micro !font-semibold text-success leading-tight">
+                  {tr('livestock_owner')}
+                </p>
               </div>
             </div>
-          </>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {callHref && (
+                <a
+                  href={callHref}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label={tr('call_now')}
+                  className="grid place-items-center h-9 w-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 active:scale-95 transition-all shadow-sm"
+                >
+                  <Phone size={16} fill="currentColor" strokeWidth={0} />
+                </a>
+              )}
+              {waHref && (
+                <a
+                  href={waHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="WhatsApp"
+                  className="grid place-items-center h-9 w-9 rounded-full bg-[#25D366] text-white hover:bg-[#1ebe57] active:scale-95 transition-all shadow-sm"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 2.1.55 4.07 1.6 5.85L2 22l4.39-1.7a9.86 9.86 0 0 0 5.65 1.78h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.01A9.84 9.84 0 0 0 12.04 2zm5.83 14.07c-.25.7-1.42 1.32-1.98 1.41-.5.07-1.14.1-1.84-.12-.42-.13-.96-.31-1.66-.6-2.91-1.26-4.81-4.19-4.96-4.39-.15-.2-1.18-1.57-1.18-3 0-1.42.75-2.12 1.01-2.41.25-.29.55-.36.74-.36h.53c.17 0 .39-.06.61.46.25.6.84 2.05.91 2.2.07.15.12.32.02.52-.1.2-.15.32-.29.5-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.62 2.02 1.11.99 2.04 1.3 2.34 1.45.29.15.46.12.63-.07.17-.2.74-.86.94-1.16.2-.3.39-.25.66-.15.27.1 1.71.81 2 .96.29.15.49.22.56.34.07.12.07.7-.18 1.39z"/>
+                  </svg>
+                </a>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </Wrapper>
@@ -357,6 +456,11 @@ ListingCard.propTypes = {
   id: PropTypes.string,
   title: PropTypes.string.isRequired,
   type: PropTypes.string,
+  typeKey: PropTypes.string,
+  breedLabel: PropTypes.string,
+  age: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  ageUnit: PropTypes.string,
+  description: PropTypes.string,
   price: PropTypes.number.isRequired,
   isNegotiable: PropTypes.bool,
   location: PropTypes.string,
@@ -371,6 +475,4 @@ ListingCard.propTypes = {
   sellerPhone: PropTypes.string,
   whatsappPhone: PropTypes.string,
   createdAt: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
-  onFlag: PropTypes.func,
-  onShare: PropTypes.func,
 };

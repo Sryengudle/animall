@@ -51,6 +51,10 @@ const animalSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+
+  // ── Redesign V2 additions (additive — old records read with defaults)
+  isNegotiable: { type: Boolean, default: true },  // sell-time toggle, default ON
+  videoUrl:     { type: String,  default: '' },    // optional single video URL
 }, { timestamps: true });
 
 // Index for fast queries

@@ -74,7 +74,7 @@ Already in the system: `--color-primary-*`, `--color-accent-*`, `--color-brand-*
 **Before**: Simple top bar.
 **After**:
 - Background: solid `bg-brand-700` (deep emerald — same role as the maroon in reference).
-- Left: 🐄 + "Pashubazaar" in white + tagline "गाय-भैंस खरीदो-बेचो" in 11px white/70.
+- Left: 🐄 + "Pashubazar" in white + tagline "गाय-भैंस खरीदो-बेचो" in 11px white/70.
 - Right: "Sell Livestock" pill CTA (visible on width ≥ 360 px, ghost on smaller) + avatar that opens Profile.
 - Height: 64 px. No bottom border; subtle shadow only on scroll.
 
@@ -183,7 +183,7 @@ The crown jewel of the reference UX. Bottom sheet with grouped filter cards.
 - Settings list cards (full width):
   - Share with Friends → opens native share
   - Logout (red icon)
-- Footer: version "2.0.4 (92)" · Privacy · Terms · Refund · © 2026 Pashubazaar
+- Footer: version "2.0.4 (92)" · Privacy · Terms · Refund · © 2026 Pashubazar
 
 ### 3.10 Edit profile (`EditProfilePage.jsx`)
 Major expansion of fields. All optional, drives the completion %.
@@ -335,13 +335,13 @@ What this **does** change:
 
 3. ~~Bottom nav tabs?~~ **CONFIRMED 2026-05-13: 3 tabs — Buy / Sell / My Cattle.** Profile moves to the avatar tap-target in the Header. Home route `/` redirects to `/buy`.
 
-4. ~~Rebrand the React app to "Pashubazaar"?~~ **CONFIRMED 2026-05-13: yes for visible text.** `localStorage` keys (`animall_auth`, `animall_lang`) stay unchanged to avoid logging out existing users.
+4. ~~Rebrand the React app to "Pashubazar"?~~ **CONFIRMED 2026-05-13: yes for visible text.** `localStorage` keys (`animall_auth`, `animall_lang`) stay unchanged to avoid logging out existing users.
 
 5. ~~"Negotiable Only" — sell-time toggle?~~ **CONFIRMED 2026-05-13: sell-time toggle, default ON.** Stored on the listing as `is_negotiable`.
 
 6. ~~Profile completion % formula?~~ **CONFIRMED 2026-05-13: 10% per filled field.** Counted fields (10 total): phone (auto-100% from OTP), name, photo, address, WhatsApp, birthday, occupation, education, cattle_count, experience_years.
 
-7. ~~Brand text in the header?~~ **CONFIRMED 2026-05-13: "Pashubazaar" Latin wordmark + "गाय-भैंस खरीदो-बेचो" Devanagari tagline.** Same pattern as marketing site.
+7. ~~Brand text in the header?~~ **CONFIRMED 2026-05-13: "Pashubazar" Latin wordmark + "गाय-भैंस खरीदो-बेचो" Devanagari tagline.** Same pattern as marketing site.
 
 8. ~~Media uploads location?~~ **CONFIRMED 2026-05-13: local disk in V1.** 20 MB max per video. R2 migration in V2.
 

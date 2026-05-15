@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../services/api';
+import api from '@/services/api';
 
 // Load persisted auth from localStorage
 const savedAuth = (() => {
@@ -40,6 +40,51 @@ export const verifyOTP = createAsyncThunk('auth/verifyOTP', async ({ phone, otp 
     return rejectWithValue('Invalid OTP');
   }
 });
+
+/**
+ * Save profile changes to the backend. Replaces the local-only `updateUser`
+ * reducer for any edit flow that should persist server-side. Accepts any subset
+ * of: name, location, profilePhoto, whatsapp, dob, occupation, education,
+ * experience, livestock.
+ */
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (patch, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+      const res = await api.put('/auth/profile', patch, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data; // full updated user
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to update profile');
+    }
+  },
+);
+
+/**
+ * Upload a profile photo (multipart, field name "photo"). On success the
+ * server returns the new URL + the updated user record.
+ */
+export const uploadProfilePhoto = createAsyncThunk(
+  'auth/uploadProfilePhoto',
+  async (file, { getState, rejectWithValue }) => {
+    try {
+      const token = getState().auth.token;
+      const fd = new FormData();
+      fd.append('photo', file);
+      const res = await api.post('/auth/profile-photo', fd, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return res.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Upload failed');
+    }
+  },
+);
 
 // --- Slice ---
 
@@ -96,6 +141,16 @@ const authSlice = createSlice({
       .addCase(verifyOTP.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'OTP verification failed';
+      })
+      // Profile updates merge into the existing user; also persist to
+      // localStorage so a page refresh keeps the new values until next API read.
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem('animall_auth', JSON.stringify({ user: state.user, token: state.token }));
+      })
+      .addCase(uploadProfilePhoto.fulfilled, (state, action) => {
+        state.user = { ...state.user, ...action.payload };
+        localStorage.setItem('animall_auth', JSON.stringify({ user: state.user, token: state.token }));
       });
   },
 });

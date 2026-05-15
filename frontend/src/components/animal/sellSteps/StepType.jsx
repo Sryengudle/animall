@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import useLanguage from '../../../hooks/useLanguage';
-import { ANIMAL_TYPES } from '../../../constants/animals';
+import useLanguage from '@/hooks/useLanguage';
+import { ANIMAL_TYPES } from '@/constants/animals';
 
 export default function StepType({ value, onChange }) {
   const { tr } = useLanguage();
@@ -10,8 +10,8 @@ export default function StepType({ value, onChange }) {
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-xl font-bold text-surface-900">{tr('sell_pick_animal')}</h2>
-        <p className="text-sm text-surface-500 mt-1">{tr('sell_pick_breed')} →</p>
+        <h2 className="text-h2 font-bold text-surface-900">{tr('sell_pick_animal')}</h2>
+        <p className="text-body-sm text-surface-500 mt-1">{tr('sell_pick_breed')} →</p>
       </header>
 
       <div className="grid grid-cols-2 gap-3">
@@ -40,8 +40,8 @@ export default function StepType({ value, onChange }) {
                   <Check size={14} />
                 </span>
               )}
-              <span className="text-5xl">{emoji}</span>
-              <span className={`text-sm font-bold ${active ? 'text-primary-700' : 'text-surface-700'}`}>
+              <span className="text-display-xl">{emoji}</span>
+              <span className={`text-body-sm font-bold ${active ? 'text-primary-700' : 'text-surface-700'}`}>
                 {tr(key)}
               </span>
             </motion.button>

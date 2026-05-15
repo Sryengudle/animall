@@ -37,7 +37,7 @@ export default function Modal({ open, onClose, title, children, footer, size = '
           >
             {title && (
               <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-surface-200">
-                <h3 className="text-lg font-bold text-surface-900">{title}</h3>
+                <h3 className="text-h3 font-bold text-surface-900">{title}</h3>
                 <IconButton icon={X} label="Close" size="sm" variant="ghost" onClick={onClose} />
               </div>
             )}

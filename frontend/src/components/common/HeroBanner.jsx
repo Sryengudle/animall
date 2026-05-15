@@ -32,11 +32,11 @@ export default function HeroBanner({
       <div className="pointer-events-none absolute -bottom-16 -left-10 w-36 h-36 bg-white/10 rounded-full blur-2xl" />
 
       <div className="flex-1 relative z-10">
-        <h2 className="text-lg font-extrabold text-white inline-flex items-center gap-1">
+        <h2 className="text-h3 font-extrabold text-white inline-flex items-center gap-1">
           {title}
           <ChevronRight size={18} className="opacity-90" />
         </h2>
-        <p className="text-sm text-white/90 mt-1 leading-snug max-w-[20ch]">{subtitle}</p>
+        <p className="text-body-sm text-white/90 mt-1 leading-snug max-w-[20ch]">{subtitle}</p>
         <div className="mt-2 inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-1">
           <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
           <span className="text-[11px] font-semibold text-white/90">{ctaText}</span>

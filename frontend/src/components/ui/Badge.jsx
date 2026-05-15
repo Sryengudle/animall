@@ -14,7 +14,7 @@ export default function Badge({ tone = 'neutral', icon: Icon, children, classNam
   return (
     <span
       className={`
-        inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full border
+        inline-flex items-center gap-1 px-2.5 py-1 text-caption font-bold rounded-full border
         ${TONES[tone]} ${className}
       `}
     >

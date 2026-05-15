@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import useLanguage from '../../hooks/useLanguage';
-import { BOTTOM_NAV_ITEMS } from '../../constants/nav';
+import useLanguage from '@/hooks/useLanguage';
+import { BOTTOM_NAV_ITEMS } from '@/constants/nav';
 
 // 3-tab flat bottom navigation matching the Pashu Mandi reference.
 // Buy · Sell · My Cattle. Active tab uses brand-800 color (no top bar — reference
@@ -37,8 +37,8 @@ export default function BottomNav() {
                     className={isActive ? 'scale-105 transition-transform' : 'transition-transform'}
                   />
                   <span
-                    className={`text-[11px] tracking-wide ${
-                      emphasis || isActive ? 'font-bold' : 'font-semibold'
+                    className={`text-micro ${
+                      emphasis || isActive ? '!font-bold' : '!font-semibold'
                     }`}
                   >
                     {tr(labelKey)}

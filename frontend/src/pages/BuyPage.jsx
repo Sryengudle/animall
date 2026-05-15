@@ -2,19 +2,21 @@ import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Droplets, IndianRupee, MapPin } from 'lucide-react';
 
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
-import ListingCard from '../components/common/ListingCard';
-import LocationCard from '../components/common/LocationCard';
-import CategoryTile from '../components/common/CategoryTile';
-import QuickFilterTile from '../components/common/QuickFilterTile';
-import LocationSheet from '../components/common/LocationSheet';
-import PremiumFiltersSheet, { DEFAULT_FILTERS } from '../components/common/PremiumFiltersSheet';
+import Header from '@/components/common/Header';
+import BottomNav from '@/components/common/BottomNav';
+import ListingCard from '@/components/common/ListingCard';
+import LocationCard from '@/components/common/LocationCard';
+import CategoryTile from '@/components/common/CategoryTile';
+import QuickFilterTile from '@/components/common/QuickFilterTile';
+import LocationSheet from '@/components/common/LocationSheet';
+import PremiumFiltersSheet, { DEFAULT_FILTERS } from '@/components/common/PremiumFiltersSheet';
 
-import { StickyFAB } from '../components/ui';
-import useLanguage from '../hooks/useLanguage';
-import { fetchAnimals } from '../store/slices/animalsSlice';
-import { DEMO_ANIMALS } from '../constants/demoAnimals';
+import { StickyFAB } from '@/components/ui';
+import useLanguage from '@/hooks/useLanguage';
+import { fetchAnimals } from '@/store/slices/animalsSlice';
+import { DEMO_ANIMALS } from '@/constants/demoAnimals';
+import { filtersToQuery } from '@/utils/filtersToQuery';
+import { EMPTY_ADDRESS, hasAddress, shortAddress } from '@/utils/addressFormat';
 
 // Pashu Mandi-style Buy page. Location → categories → quick filters → listings.
 // Uses ListingCard (rich card with photos, stats, icon-only Call + WhatsApp).
@@ -55,44 +57,32 @@ const LACTATION_MATCH = {
 
 const LISTED_HOURS = { 'any': Infinity, '1h': 1, '1d': 24, '2d': 48 };
 
-function applyFilters(list, f) {
+// Client-side residual filter — only the facets the backend can't handle:
+//   • milkCapacity range (backend stores milkPerDay as a string)
+//   • distance (no geo data on the schema)
+//   • nearbyOnly + nearest/farthest sort (same reason)
+// Everything else (type, price, lactation, within, negotiable, sort newest/priceAsc)
+// is already applied server-side via filtersToQuery — we just refine here.
+function applyClientResiduals(list, f) {
   let arr = list.filter((a) => {
-    if (f.animal !== 'all') {
-      if (f.animal === 'other') {
-        if (a.type === 'cow' || a.type === 'buffalo') return false;
-      } else if (a.type !== f.animal) {
-        return false;
-      }
-    }
     if (f.milkCapacity !== 'all' && MILK_RANGES[f.milkCapacity]) {
       const [lo, hi] = MILK_RANGES[f.milkCapacity];
       const milk = Number(a.milkPerDay) || 0;
       if (milk < lo || milk > hi) return false;
     }
-    if (f.price !== 'all' && PRICE_RANGES[f.price]) {
-      const [lo, hi] = PRICE_RANGES[f.price];
-      if (a.price < lo || a.price > hi) return false;
-    }
     if (f.distance !== 'any' && DISTANCE_KM[f.distance] != null) {
       if (a.distanceKm != null && a.distanceKm > DISTANCE_KM[f.distance]) return false;
     }
-    if (f.lactation !== 'all' && LACTATION_MATCH[f.lactation]) {
-      if (!LACTATION_MATCH[f.lactation](a.lactationLabel || '')) return false;
-    }
-    if (f.listed !== 'any' && LISTED_HOURS[f.listed] != null) {
-      const ageH = (Date.now() - new Date(a.createdAt).getTime()) / 3.6e6;
-      if (ageH > LISTED_HOURS[f.listed]) return false;
-    }
     if (f.nearbyOnly && a.distanceKm != null && a.distanceKm > 50) return false;
-    if (f.negotiableOnly && !a.isNegotiable) return false;
     return true;
   });
 
-  if (f.sort === 'low') arr = [...arr].sort((a, b) => a.price - b.price);
-  else if (f.sort === 'nearest') arr = [...arr].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
-  else if (f.sort === 'farthest') arr = [...arr].sort((a, b) => (b.distanceKm ?? -1) - (a.distanceKm ?? -1));
-  else arr = [...arr].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+  // Geo-based sorts (server can't do these without coordinates)
+  if (f.sort === 'nearest') {
+    arr = [...arr].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+  } else if (f.sort === 'farthest') {
+    arr = [...arr].sort((a, b) => (b.distanceKm ?? -1) - (a.distanceKm ?? -1));
+  }
   return arr;
 }
 
@@ -137,28 +127,44 @@ export default function BuyPage() {
   const dispatch = useDispatch();
   const { tr } = useLanguage();
   const { list: apiAnimals = [] } = useSelector((s) => s.animals);
+  const { user } = useSelector((s) => s.auth);
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [location, setLocation] = useState('');
+  const [address, setAddress] = useState({ ...EMPTY_ADDRESS, ...(user?.address || {}) });
   const [locOpen, setLocOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filtersFocus, setFiltersFocus] = useState(null);
 
-  useEffect(() => { dispatch(fetchAnimals({})); }, [dispatch]);
+  // Pre-fill BuyPage location chip from the seller's saved profile address (if any).
+  useEffect(() => {
+    if (hasAddress(user?.address) && !hasAddress(address)) {
+      setAddress({ ...EMPTY_ADDRESS, ...user.address });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Refetch on every filter change — backend handles type / price / lactation
+  // / within / sort / negotiable. The query string contains only what the
+  // server understands; client-side residuals apply on top.
+  useEffect(() => {
+    dispatch(fetchAnimals(filtersToQuery(filters)));
+  }, [dispatch, filters]);
 
   const sourceAnimals = apiAnimals.length > 0 ? apiAnimals : DEMO_ANIMALS;
-  const filtered = useMemo(() => applyFilters(sourceAnimals, filters), [sourceAnimals, filters]);
+  const filtered = useMemo(
+    () => applyClientResiduals(sourceAnimals, filters),
+    [sourceAnimals, filters],
+  );
 
   function openFilters(focus) {
     setFiltersFocus(focus || null);
     setFiltersOpen(true);
   }
 
-  function handleLocation(payload) {
-    if (payload.kind === 'pincode') setLocation(`PIN ${payload.pincode}`);
-    else if (payload.kind === 'address') setLocation(payload.address);
-    else if (payload.kind === 'gps') setLocation('Near me');
+  function handleLocation(addr) {
+    setAddress({ ...EMPTY_ADDRESS, ...addr });
   }
+  const locationLabel = shortAddress(address);
 
   function pickCategory(k) {
     if (k === 'other') openFilters('animal');
@@ -172,12 +178,28 @@ export default function BuyPage() {
     return String(label).match(/^\d+/)?.[0] || label;
   }
 
+  // Map a stored animal record → the localized strings the card expects.
+  // Breed + calving are stored as canonical keys (e.g. "murrah", "first") so
+  // we look up the matching i18n string instead of showing the raw English.
+  function localizedCardProps(a) {
+    const breedKey = a.breed ? `breed_${a.type}_${a.breed}` : null;
+    const breedLabel = breedKey ? tr(breedKey) : '';
+    const calvingLabel = a.lactationLabel
+      ? formatLactation(a.lactationLabel)
+      : (a.calving ? tr(`calving_${a.calving}`) || a.calving : '');
+    return {
+      title: a.title || breedLabel || tr(a.type) || '',
+      breedLabel,
+      calvingLabel,
+    };
+  }
+
   return (
     <div className="min-h-screen bg-surface-50 pb-28">
       <Header />
 
       <main className="mx-auto max-w-xl px-4 pt-4 space-y-4">
-        <LocationCard value={location} onClick={() => setLocOpen(true)} />
+        <LocationCard value={locationLabel} onClick={() => setLocOpen(true)} />
 
         <div className="grid grid-cols-3 gap-2.5">
           {CATEGORY_TILES.map((c) => (
@@ -217,50 +239,56 @@ export default function BuyPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-surface-200 pt-3 -mx-1 px-1">
-          <p className="text-xs font-bold uppercase tracking-wider text-surface-500">
+          <p className="text-caption font-bold uppercase tracking-wider text-surface-500">
             {tr('filter_all_animals_showing')}
           </p>
-          <p className="text-xs font-bold uppercase tracking-wider text-surface-500">
+          <p className="text-caption font-bold uppercase tracking-wider text-surface-500">
             {filtered.length}
           </p>
         </div>
 
         {filtered.length === 0 ? (
           <div className="text-center py-12 text-surface-500">
-            <p className="text-3xl mb-2">🐾</p>
-            <p className="text-sm font-medium">{tr('no_animals_match')}</p>
+            <p className="text-display mb-2">🐾</p>
+            <p className="text-body-sm font-medium">{tr('no_animals_match')}</p>
             <button
               type="button"
               onClick={() => setFilters(DEFAULT_FILTERS)}
-              className="mt-3 px-4 py-2 rounded-full bg-brand-700 text-white text-sm font-bold hover:bg-brand-800"
+              className="mt-3 px-4 py-2 rounded-full bg-brand-700 text-white text-body-sm font-bold hover:bg-brand-800"
             >
               {tr('filter_reset')}
             </button>
           </div>
         ) : (
           <div className="space-y-4">
-            {filtered.map((a) => (
-              <ListingCard
-                key={a._id}
-                id={a._id}
-                title={a.title || a.breed?.toUpperCase() || ''}
-                type={tr(a.type) || a.type}
-                price={a.price}
-                isNegotiable={a.isNegotiable}
-                location={a.location}
-                distanceKm={a.distanceKm}
-                lactationLabel={formatLactation(a.lactationLabel)}
-                milkPerDay={a.milkPerDay}
-                images={a.images}
-                videoUrl={a.videoUrl}
-                posterUrl={a.posterUrl}
-                sellerName={a.sellerName}
-                sellerPhone={a.sellerPhone}
-                createdAt={a.createdAt}
-                onFlag={() => {}}
-                onShare={() => {}}
-              />
-            ))}
+            {filtered.map((a) => {
+              const localized = localizedCardProps(a);
+              return (
+                <ListingCard
+                  key={a._id}
+                  id={a._id}
+                  title={localized.title}
+                  type={tr(a.type) || a.type}
+                  typeKey={a.type}
+                  breedLabel={localized.breedLabel}
+                  age={a.age}
+                  ageUnit={a.ageUnit}
+                  description={a.description}
+                  price={a.price}
+                  isNegotiable={a.isNegotiable}
+                  location={a.location}
+                  distanceKm={a.distanceKm}
+                  lactationLabel={localized.calvingLabel}
+                  milkPerDay={a.milkPerDay}
+                  images={a.images}
+                  videoUrl={a.videoUrl}
+                  posterUrl={a.posterUrl}
+                  sellerName={a.sellerName}
+                  sellerPhone={a.sellerPhone}
+                  createdAt={a.createdAt}
+                />
+              );
+            })}
           </div>
         )}
       </main>
@@ -275,6 +303,7 @@ export default function BuyPage() {
         open={locOpen}
         onClose={() => setLocOpen(false)}
         onSelect={handleLocation}
+        initial={address}
       />
 
       <PremiumFiltersSheet

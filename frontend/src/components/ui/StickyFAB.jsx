@@ -16,14 +16,14 @@ export default function StickyFAB({ to, onClick, icon, children, className = '' 
       onClick={handleClick}
       className={`
         fixed right-3 bottom-[72px] z-50 inline-flex items-center gap-1.5
-        px-3.5 py-2 rounded-full bg-brand-700 text-white font-bold text-xs
+        px-3.5 py-2 rounded-full bg-brand-700 text-white font-bold text-caption
         shadow-lg shadow-brand-900/40 ring-2 ring-surface-0
         hover:bg-brand-800 active:scale-95
         transition-all focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-300
         ${className}
       `}
     >
-      {icon && <span aria-hidden="true" className="text-xs">{icon}</span>}
+      {icon && <span aria-hidden="true" className="text-caption">{icon}</span>}
       {children}
     </button>
   );

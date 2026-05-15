@@ -13,7 +13,7 @@ export default function SegmentToggle({ options, value, onChange, className = ''
             onClick={() => onChange?.(opt.key)}
             aria-pressed={active}
             className={`
-              min-h-[36px] px-3 rounded-full text-xs font-bold transition-all
+              min-h-[36px] px-3 rounded-full text-caption font-bold transition-all
               focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300
               ${active ? 'bg-brand-600 text-white shadow-sm' : 'text-brand-700 hover:text-brand-900'}
             `}

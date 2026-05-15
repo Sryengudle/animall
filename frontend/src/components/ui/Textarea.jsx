@@ -11,7 +11,7 @@ const Textarea = forwardRef(function Textarea(
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-semibold text-surface-800 mb-1.5">
+        <label htmlFor={inputId} className="block text-body-sm font-semibold text-surface-800 mb-1.5">
           {label}
         </label>
       )}
@@ -21,7 +21,7 @@ const Textarea = forwardRef(function Textarea(
         rows={rows}
         aria-invalid={errored}
         className={`
-          w-full px-4 py-3 text-base text-surface-900 bg-surface-0 rounded-2xl border-2 outline-none resize-none
+          w-full px-4 py-3 text-body text-surface-900 bg-surface-0 rounded-2xl border-2 outline-none resize-none
           transition-all placeholder:text-surface-400
           ${errored
             ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100'
@@ -29,8 +29,8 @@ const Textarea = forwardRef(function Textarea(
         `}
         {...rest}
       />
-      {errored && <p className="mt-1.5 text-xs font-semibold text-red-500">{error}</p>}
-      {!errored && hint && <p className="mt-1.5 text-xs text-surface-500">{hint}</p>}
+      {errored && <p className="mt-1.5 text-caption font-semibold text-red-500">{error}</p>}
+      {!errored && hint && <p className="mt-1.5 text-caption text-surface-500">{hint}</p>}
     </div>
   );
 });

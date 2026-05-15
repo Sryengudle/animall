@@ -12,9 +12,9 @@ const VARIANTS = {
 };
 
 const SIZES = {
-  sm: 'h-9  px-3  text-sm rounded-xl',
-  md: 'h-11 px-4  text-sm rounded-2xl',
-  lg: 'h-14 px-5  text-base rounded-2xl',
+  sm: 'h-9  px-3  text-body-sm rounded-xl',
+  md: 'h-11 px-4  text-body-sm rounded-2xl',
+  lg: 'h-14 px-5  text-body rounded-2xl',
 };
 
 export default function Button({

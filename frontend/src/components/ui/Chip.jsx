@@ -8,7 +8,7 @@ export default function Chip({ active, onClick, children, icon, className = '' }
       onClick={onClick}
       aria-pressed={active}
       className={`
-        inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-full border-2
+        inline-flex items-center gap-1.5 px-4 py-2 text-body-sm font-semibold rounded-full border-2
         whitespace-nowrap flex-shrink-0 transition-all duration-200 active:scale-95
         focus:outline-none focus-visible:ring-4 focus-visible:ring-primary-200
         ${active
@@ -17,7 +17,7 @@ export default function Chip({ active, onClick, children, icon, className = '' }
         ${className}
       `}
     >
-      {icon && <span className="text-base leading-none">{icon}</span>}
+      {icon && <span className="text-body leading-none">{icon}</span>}
       {children}
     </button>
   );

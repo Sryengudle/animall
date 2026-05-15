@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart, Share2, Phone, MapPin, Clock } from 'lucide-react';
-import useLanguage from '../../hooks/useLanguage';
-import { ANIMAL_META, breedI18nKey, calvingI18nKey } from '../../constants/animals';
-import { formatPrice, timeAgo } from '../../utils/formatters';
-import { callPhone, openWhatsApp } from '../../utils/contact';
-import { shareOrCopy } from '../../utils/share';
-import { isWishlisted, toggleWishlist, subscribeWishlist } from '../../utils/wishlist';
-import { Card, ImageWithFallback, IconButton, Badge } from '../ui';
+import useLanguage from '@/hooks/useLanguage';
+import { ANIMAL_META, breedI18nKey, calvingI18nKey } from '@/constants/animals';
+import { formatPrice, timeAgo } from '@/utils/formatters';
+import { callPhone, openWhatsApp } from '@/utils/contact';
+import { shareOrCopy } from '@/utils/share';
+import { isWishlisted, toggleWishlist, subscribeWishlist } from '@/utils/wishlist';
+import { Card, ImageWithFallback, IconButton, Badge } from '@/components/ui';
 
 const stop = (fn) => (e) => { e.stopPropagation(); e.preventDefault(); fn?.(e); };
 
@@ -39,7 +39,7 @@ export default function AnimalCard({ animal }) {
     const msg = tr('whatsapp_prefill', {
       type: tr(animal.type),
       price: formatPrice(animal.price),
-    }) || `Hello! I'm interested in your ${tr(animal.type)} (${formatPrice(animal.price)}). — via Animall`;
+    }) || `Hello! I'm interested in your ${tr(animal.type)} (${formatPrice(animal.price)}). — via ${tr('app_name')}`;
     openWhatsApp(animal.sellerPhone, msg);
   });
   const handleShare = stop(() => shareOrCopy({
@@ -101,7 +101,7 @@ export default function AnimalCard({ animal }) {
 
           {/* Bottom-left price badge */}
           <div className="absolute bottom-3 left-3">
-            <Badge tone="green" className="!px-3 !py-1.5 !text-sm shadow-lg backdrop-blur-sm bg-white/90">
+            <Badge tone="green" className="!px-3 !py-1.5 !text-body-sm shadow-lg backdrop-blur-sm bg-white/90">
               {formatPrice(animal.price)}
             </Badge>
           </div>
@@ -109,11 +109,11 @@ export default function AnimalCard({ animal }) {
 
         {/* Body */}
         <div className="px-4 py-3 space-y-2">
-          <p className="text-sm font-bold text-surface-900 leading-snug line-clamp-2">
+          <p className="text-body-sm font-bold text-surface-900 leading-snug line-clamp-2">
             {titleText}
           </p>
 
-          <div className="flex items-center gap-3 text-xs text-surface-500">
+          <div className="flex items-center gap-3 text-caption text-surface-500">
             <span className="inline-flex items-center gap-1">
               <Clock size={12} /> {timeAgo(animal.createdAt, tr)}
             </span>
@@ -124,7 +124,7 @@ export default function AnimalCard({ animal }) {
 
           {/* Seller + actions */}
           <div className="flex items-center justify-between pt-2 border-t border-surface-200">
-            <div className="text-xs text-surface-600 truncate min-w-0">
+            <div className="text-caption text-surface-600 truncate min-w-0">
               <span className="font-bold text-primary-700">{animal.sellerName || tr('seller')}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function AnimalCard({ animal }) {
                 onClick={handleCall}
                 aria-label={tr('call')}
                 className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600
-                           text-white px-3 py-2 rounded-full text-xs font-bold shadow-md
+                           text-white px-3 py-2 rounded-full text-caption font-bold shadow-md
                            hover:shadow-lg active:scale-95 transition-all"
               >
                 <Phone size={14} /> {tr('call')}

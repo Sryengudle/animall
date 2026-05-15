@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { MapPin } from 'lucide-react';
-import useLanguage from '../../hooks/useLanguage';
+import useLanguage from '@/hooks/useLanguage';
 
 // "Select Location" card at the top of the Buy page. Tap → opens LocationSheet
 // (or fires onClick). Shows currently-selected location, or placeholder text.
@@ -17,12 +17,12 @@ export default function LocationCard({ value, onClick }) {
           <MapPin size={16} />
         </span>
         <span className="min-w-0 text-left">
-          <span className={`block text-sm font-bold truncate ${value ? 'text-surface-900' : 'text-surface-500'}`}>
+          <span className={`block text-body-sm font-bold truncate ${value ? 'text-surface-900' : 'text-surface-500'}`}>
             {value || tr('loc_select')}
           </span>
         </span>
       </span>
-      <span className="text-xs font-bold text-brand-700 px-2.5 py-1 rounded-full bg-brand-50 hover:bg-brand-100 transition-colors shrink-0">
+      <span className="text-caption font-bold text-brand-700 px-2.5 py-1 rounded-full bg-brand-50 hover:bg-brand-100 transition-colors shrink-0">
         {tr('loc_change')}
       </span>
     </button>

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { detectDeviceLanguage, SUPPORTED_LANGS } from '../../utils/deviceLocale';
-import { readInitialTheme, applyTheme, THEME_MODES } from '../../utils/theme';
+import { detectDeviceLanguage, SUPPORTED_LANGS } from '@/utils/deviceLocale';
+import { readInitialTheme, applyTheme, THEME_MODES } from '@/utils/theme';
 
 const uiSlice = createSlice({
   name: 'ui',

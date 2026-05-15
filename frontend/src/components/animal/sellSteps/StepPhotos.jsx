@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, X, Plus } from 'lucide-react';
-import useLanguage from '../../../hooks/useLanguage';
-import { compressImage, fileToPreview } from '../../../services/imageService';
+import useLanguage from '@/hooks/useLanguage';
+import { compressImage, fileToPreview } from '@/services/imageService';
 
 const MAX_PHOTOS = 5;
 
@@ -34,8 +34,8 @@ export default function StepPhotos({ files, previews, onChange }) {
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-xl font-bold text-surface-900">{tr('sell_photos')}</h2>
-        <p className="text-sm text-surface-500 mt-1">{tr('sell_photos_hint')}</p>
+        <h2 className="text-h2 font-bold text-surface-900">{tr('sell_photos')}</h2>
+        <p className="text-body-sm text-surface-500 mt-1">{tr('sell_photos_hint')}</p>
       </header>
 
       <input
@@ -62,8 +62,8 @@ export default function StepPhotos({ files, previews, onChange }) {
           <span className="w-14 h-14 rounded-full bg-surface-0 shadow flex items-center justify-center">
             <Camera size={28} />
           </span>
-          <span className="text-base font-bold">{tr('add_photo')}</span>
-          <span className="text-xs text-primary-600/80">{tr('sell_photos_hint')}</span>
+          <span className="text-body font-bold">{tr('add_photo')}</span>
+          <span className="text-caption text-primary-600/80">{tr('sell_photos_hint')}</span>
         </motion.button>
       ) : (
         <div className="grid grid-cols-3 gap-3">
@@ -94,13 +94,13 @@ export default function StepPhotos({ files, previews, onChange }) {
               className="aspect-square rounded-2xl border-2 border-dashed border-primary-300 bg-primary-50/50 text-primary-700 flex flex-col items-center justify-center gap-1 hover:bg-primary-50 transition-colors"
             >
               <Plus size={24} />
-              <span className="text-xs font-bold">{tr('add_photo')}</span>
+              <span className="text-caption font-bold">{tr('add_photo')}</span>
             </button>
           )}
         </div>
       )}
 
-      <p className="text-xs text-surface-400 text-center">{files.length} / {MAX_PHOTOS}</p>
+      <p className="text-caption text-surface-400 text-center">{files.length} / {MAX_PHOTOS}</p>
     </section>
   );
 }

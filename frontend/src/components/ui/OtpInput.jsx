@@ -73,7 +73,7 @@ export default function OtpInput({
           onKeyDown={(e) => handleKey(i, e)}
           aria-label={`Digit ${i + 1}`}
           className="
-            w-12 h-12 text-center text-2xl font-bold text-surface-900 bg-transparent
+            w-12 h-12 text-center text-h1 font-bold text-surface-900 bg-transparent
             border-0 border-b-2 border-brand-400 focus:border-brand-700
             focus:outline-none transition-colors disabled:opacity-50
           "

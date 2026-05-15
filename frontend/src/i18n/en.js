@@ -1,7 +1,7 @@
 // English translations
 const en = {
   // ── App
-  app_name: 'Pashubazaar',
+  app_name: 'Pashubazar',
   app_tagline: 'Buy & sell livestock',
   language: 'Language',
 
@@ -22,6 +22,22 @@ const en = {
   delete: 'Delete',
   edit: 'Edit',
   save: 'Save',
+  saved: 'Saved to favorites',
+  removed_from_saved: 'Removed from favorites',
+
+  // ── Report listing
+  report_link: 'Report this listing',
+  report_title: 'Report this listing',
+  report_subtitle: 'Tell us what is wrong so we can review it',
+  report_reason_fake_photo: 'Fake or stolen photos',
+  report_reason_spam: 'Spam or duplicate listing',
+  report_reason_scam: 'Scam or suspicious price',
+  report_reason_cruelty: 'Animal cruelty',
+  report_reason_other: 'Other',
+  report_details_label: 'Additional details (optional)',
+  report_details_placeholder: 'Anything else we should know?',
+  report_submit: 'Submit report',
+  report_thanks: 'Thanks — we will review this listing.',
   cancel: 'Cancel',
   retry: 'Retry',
   apply: 'Apply',
@@ -86,7 +102,7 @@ const en = {
   home_banner_sell_cta: '200+ sellers online',
   home_banner_sell_alt: 'Seller portraits',
   home_tutorials_title: 'Learn how it works',
-  video_how_to_buy: 'How to buy animals on Animall?',
+  video_how_to_buy: 'How to buy animals on Pashubazar?',
   video_how_to_sell: 'The right way to sell animals',
   video_sell_fast: 'How to sell an animal in 1 day?',
   categories: 'Browse categories',
@@ -94,7 +110,7 @@ const en = {
   near_you: 'Near you',
 
   // ── Auth
-  welcome_to_animall: 'Welcome to Animall',
+  welcome_to_app: 'Welcome to Pashubazar',
   enter_phone_to_continue: 'Enter your phone number to buy or sell animals',
   mobile_number: 'Mobile number',
   mobile_placeholder: 'Enter your mobile number',
@@ -109,7 +125,7 @@ const en = {
   resend_otp: 'Resend OTP',
   change_number: 'Change number',
   trusted_by_farmers: 'Trusted by 1 crore+ farmers',
-  terms_privacy: 'Terms · Privacy · Animall Technologies © 2026',
+  terms_privacy: 'Terms · Privacy · Pashubazar © 2026',
   loading_dots: 'Please wait…',
   verifying_otp_msg: 'Verifying your OTP…',
 
@@ -180,10 +196,11 @@ const en = {
   view: 'View',
   mark_sold: 'Mark sold',
   confirm_delete: 'Delete this listing?',
+  confirm_delete_sub: 'This listing will be removed. You cannot undo this action.',
 
   // ── Profile
   profile_title: 'Profile',
-  profile_journey: 'Your journey on Animall',
+  profile_journey: 'Your journey on Pashubazar',
   profile_listings_posted: 'Listings posted',
   profile_calls_made: 'Calls made',
   profile_calls_received: 'Calls received',
@@ -212,7 +229,7 @@ const en = {
   edit_profile_livestock: 'Number of animals you own',
   edit_profile_occupation: 'Occupation',
   edit_profile_experience: 'Years of experience',
-  edit_profile_app_usage: 'Why do you use Animall?',
+  edit_profile_app_usage: 'Why do you use Pashubazar?',
   edit_profile_education: 'Education',
   edit_profile_save: 'Save profile',
   occupation_home: 'Pets / home',
@@ -256,7 +273,7 @@ const en = {
   required_contact: 'Enter a valid contact number',
   fair_price_hint: 'Find out the fair price',
   page_load_error: 'Something went wrong loading this page',
-  whatsapp_prefill: 'Hello! I want to know about your {type} ({price}). Sent from Animall.',
+  whatsapp_prefill: 'Hello! I want to know about your {type} ({price}). Sent from Pashubazar.',
   day: 'day',
 
   // Theme
@@ -314,6 +331,100 @@ const en = {
   call_now: 'Call Now',
   livestock_owner: 'Livestock Owner',
   negotiable_only: 'Negotiable Only',
+  fixed_price: 'Fixed Price',
+
+  // ── Premium filters sheet (PremiumFiltersSheet)
+  pfs_section_animal_t: 'Choose Animal',
+  pfs_section_animal_s: 'More options than the quick cards outside',
+  pfs_section_milk_t: 'Milk Capacity',
+  pfs_section_milk_s: 'Pick the daily milk yield you need',
+  pfs_section_price_t: 'Price',
+  pfs_section_price_s: 'No typing — choose budget range directly',
+  pfs_section_distance_t: 'Distance & Location',
+  pfs_section_distance_s: 'See animals within your preferred range',
+  pfs_section_lactation_t: 'Lactation Stage',
+  pfs_section_lactation_s: 'Shortlist by lactation stage',
+  pfs_section_listed_t: 'When Animal Listed',
+  pfs_section_listed_s: 'New or recent animals first',
+  pfs_section_sort_t: 'Sort & Other Options',
+  pfs_section_sort_s: 'Set ordering and deal conditions',
+
+  // Animal options
+  pfs_animal_all_t: 'All Animals',
+  pfs_animal_all_s: 'All kinds of animals',
+  pfs_animal_cow_s: 'Dairy and milking cows',
+  pfs_animal_buffalo_s: 'High-fat milk buffalo',
+  pfs_animal_other_s: 'Goat, sheep, chicken and more',
+
+  // Milk options
+  pfs_milk_all_t: 'All Capacity',
+  pfs_milk_all_s: 'Every milk capacity',
+  pfs_milk_0_5: '0-5 Litres',
+  pfs_milk_5_8: '5-8 Litres',
+  pfs_milk_8_10: '8-10 Litres',
+  pfs_milk_10_12: '10-12 Litres',
+  pfs_milk_12_15: '12-15 Litres',
+  pfs_milk_15_20: '15-20 Litres',
+  pfs_milk_20p: '20+ Litres',
+
+  // Price options
+  pfs_price_all_t: 'All Budget',
+  pfs_price_all_s: 'Every price',
+  pfs_price_0_20k: '₹0-₹20 Thousand',
+  pfs_price_20_50k: '₹20-₹50 Thousand',
+  pfs_price_50_80k: '₹50-₹80 Thousand',
+  pfs_price_80_99k: '₹80-₹99 Thousand',
+  pfs_price_1_15L: '₹1-₹1.5 Lakh',
+  pfs_price_15Lp: '₹1.5+ Lakh',
+
+  // Distance options
+  pfs_dist_nearby_t: 'Nearby',
+  pfs_dist_nearby_s: 'Closest only',
+  pfs_dist_25: '25 km',
+  pfs_dist_50: '50 km',
+  pfs_dist_100: '100 km',
+  pfs_dist_200: '200 km',
+  pfs_dist_any: 'Any distance',
+
+  // Lactation options
+  pfs_lact_all_t: 'All Lactations',
+  pfs_lact_all_s: 'Every stage',
+  pfs_lact_none_t: 'Not Delivered',
+  pfs_lact_none_s: 'Not delivered yet',
+  pfs_lact_1_t: '1st Lactation',
+  pfs_lact_1_s: 'First lactation',
+  pfs_lact_2_t: '2nd Lactation',
+  pfs_lact_2_s: 'Second lactation',
+  pfs_lact_3_t: '3rd Lactation',
+  pfs_lact_3_s: 'Third lactation',
+  pfs_lact_4p_t: '4th+ Lactation',
+  pfs_lact_4p_s: 'Fourth or more',
+
+  // Listed options
+  pfs_listed_any_t: 'Anytime',
+  pfs_listed_any_s: 'Every animal',
+  pfs_listed_1h_t: '1 Hour Ago',
+  pfs_listed_1h_s: 'Fresh animals',
+  pfs_listed_1d_t: '1 Day Ago',
+  pfs_listed_1d_s: "Today's animals",
+  pfs_listed_2d_t: '2 Days Ago',
+  pfs_listed_2d_s: 'Recent animals',
+
+  // Sort options
+  pfs_sort_recent_t: 'Most Recent',
+  pfs_sort_recent_s: 'New animals first',
+  pfs_sort_low_t: 'Low Price',
+  pfs_sort_low_s: 'Cheapest first',
+  pfs_sort_nearest_t: 'Nearest',
+  pfs_sort_nearest_s: 'Nearby first',
+  pfs_sort_farthest_t: 'Farthest',
+  pfs_sort_farthest_s: 'Far away first',
+
+  // Toggles
+  pfs_toggle_nearby_t: 'Nearby Only',
+  pfs_toggle_nearby_s: 'When off, animals from all distances will show',
+  pfs_toggle_negotiable_t: 'Negotiable Only',
+  pfs_toggle_negotiable_s: 'Only show animals where bargaining is possible',
   lactation_label: 'Lactation',
   milk_capacity_label: 'Milk Capacity',
   breed_label: 'Breed',
@@ -354,6 +465,38 @@ const en = {
   profile_photo_cta: 'Add Photo',
   profile_photo_hint: 'Adding a photo makes your profile more trustworthy',
   profile_address_warn: 'This can only be changed once',
+  edit_listing: 'Edit Listing',
+  negotiable_toggle_label: 'Negotiable price',
+  negotiable_toggle_sub: 'Buyers can offer a different price',
+  update_button: 'Update',
+  edit_existing_media_hint: 'Existing photos and videos are kept. New uploads will be added.',
+
+  // ── Location capture (LocationSheet + EditProfile address)
+  loc_set_your_location: 'Set your location',
+  loc_set_your_location_sub: 'We need this so buyers near you can find your animal',
+  loc_locating: 'Getting your location…',
+  loc_geo_denied: 'Location permission denied. Use pincode or enter manually.',
+  loc_geo_failed: 'Could not get GPS location. Try pincode instead.',
+  loc_search_places: 'Search area, village or city',
+  loc_search_places_hint: 'Powered by Google Maps',
+  loc_pincode_label: 'Enter 6-digit pincode',
+  loc_pincode_hint: 'We will auto-fill city, district and state',
+  loc_pincode_searching: 'Looking up pincode…',
+  loc_pincode_not_found: 'Pincode not found. Please check and try again.',
+  loc_pincode_pick_office: 'Pick your village / locality',
+  loc_pincode_use: 'Use this',
+  loc_addr_house: 'House no / street',
+  loc_addr_area: 'Area / village',
+  loc_addr_city: 'City / taluka',
+  loc_addr_district: 'District',
+  loc_addr_state: 'State',
+  loc_addr_pincode: 'Pincode',
+  loc_addr_house_ph: 'e.g. Plot 12, Main Road',
+  loc_addr_area_ph: 'e.g. Indiranagar',
+  loc_addr_city_ph: 'e.g. Nashik',
+  loc_save: 'Save address',
+  loc_required_fields: 'Please add at least your pincode or village.',
+  loc_address_saved: 'Address saved',
 };
 
 export default en;

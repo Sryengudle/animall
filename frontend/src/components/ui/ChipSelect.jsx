@@ -29,15 +29,15 @@ export default function ChipSelect({ options, value, onChange, multi = false, cl
             onClick={() => toggle(opt.key)}
             aria-pressed={active}
             className={`
-              inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-full
-              text-sm font-medium transition-all duration-150 border-2 active:scale-95
+              inline-flex items-center justify-center min-h-[40px] px-3.5 py-1.5 rounded-full
+              text-caption !font-semibold transition-all duration-150 border-2 active:scale-95
               focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200
               ${active
                 ? 'bg-brand-50 border-brand-400 text-brand-800 shadow-sm'
                 : 'bg-surface-0 border-surface-200 text-surface-700 hover:border-brand-300'}
             `}
           >
-            {opt.icon && <span className="mr-1.5 text-base">{opt.icon}</span>}
+            {opt.icon && <span className="mr-1.5 text-body-sm">{opt.icon}</span>}
             {opt.label}
           </button>
         );

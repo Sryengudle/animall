@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setLang } from '../store/slices/uiSlice';
-import { t } from '../i18n';
+import { setLang } from '@/store/slices/uiSlice';
+import { t } from '@/i18n';
 
 // Hook: returns the active translation function and language controls.
 export default function useLanguage() {

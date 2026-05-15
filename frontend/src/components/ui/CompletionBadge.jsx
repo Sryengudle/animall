@@ -7,7 +7,7 @@ export default function CompletionBadge({ percent }) {
   const remaining = 100 - clamped;
   if (remaining <= 0) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 text-accent-800 px-3 py-1 text-xs font-bold whitespace-nowrap">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 text-accent-800 px-3 py-1 text-caption font-bold whitespace-nowrap">
       <span className="h-2 w-2 rounded-full bg-accent-500 animate-pulse shrink-0" />
       {remaining}% Incomplete
     </span>

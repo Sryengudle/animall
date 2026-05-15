@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../hooks/useLanguage';
-import { ANIMAL_TYPES } from '../../constants/animals';
-import { Chip } from '../ui';
+import useLanguage from '@/hooks/useLanguage';
+import { ANIMAL_TYPES } from '@/constants/animals';
+import { Chip } from '@/components/ui';
 
 // Horizontal scrollable strip of animal categories. Adds a synthetic 'all' entry.
 export default function CategoryChips({ active, onChange, className = '' }) {

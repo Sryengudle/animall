@@ -14,17 +14,25 @@ const storage = multer.diskStorage({
   },
 });
 
+// Accept images (jpg/png/webp) AND videos (mp4/mov/webm). Sell flow has a
+// milking-video tile that goes through the same `images[]` field for V1.
+const IMAGE_EXTS = /jpeg|jpg|png|webp/;
+const VIDEO_EXTS = /mp4|mov|webm|quicktime|m4v/;
+
 const fileFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|webp/;
-  const ok = allowed.test(path.extname(file.originalname).toLowerCase())
-    && allowed.test(file.mimetype);
-  ok ? cb(null, true) : cb(new Error('Images only (jpg, png, webp)'));
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isImage = IMAGE_EXTS.test(ext) && IMAGE_EXTS.test(file.mimetype);
+  const isVideo = VIDEO_EXTS.test(ext) && /^video\//.test(file.mimetype);
+  if (isImage || isVideo) cb(null, true);
+  else cb(new Error('Only images (jpg/png/webp) or videos (mp4/mov/webm) accepted'));
 };
 
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  // 20 MB to accommodate short milking videos. Profile-photo upload uses the
+  // same multer; tighten there if we ever care about a smaller cap for avatars.
+  limits: { fileSize: 20 * 1024 * 1024 },
 });
 
 module.exports = upload;

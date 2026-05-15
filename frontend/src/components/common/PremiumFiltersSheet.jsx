@@ -4,72 +4,72 @@ import {
   Sparkles, Droplets, IndianRupee, MapPin, Tag, Calendar, ArrowDownNarrowWide, ShieldCheck,
 } from 'lucide-react';
 
-import useLanguage from '../../hooks/useLanguage';
-import BottomSheet from '../ui/BottomSheet';
-import FilterCard from '../ui/FilterCard';
-import FilterPill from '../ui/FilterPill';
-import Button from '../ui/Button';
+import useLanguage from '@/hooks/useLanguage';
+import BottomSheet from '@/components/ui/BottomSheet';
+import FilterCard from '@/components/ui/FilterCard';
+import FilterPill from '@/components/ui/FilterPill';
+import Button from '@/components/ui/Button';
 
-// The 7 facets in the Pashu Mandi reference. Each facet's options are 2-line
-// pills (title + optional subtitle) so the user can scan them without reading.
+// The 7 facets in the Pashu Mandi reference. Each option's title/subtitle is
+// referenced by i18n key so the sheet renders in the user's language.
 const ANIMAL_OPTS = [
-  { key: 'all',     title: 'All Animals', subtitle: 'All kinds of animals' },
-  { key: 'cow',     title: 'Cow',         subtitle: 'Dairy and milking cows' },
-  { key: 'buffalo', title: 'Buffalo',     subtitle: 'High fat milk buffalo' },
-  { key: 'other',   title: 'Other Animals', subtitle: 'Other available animals' },
+  { key: 'all',     t: 'pfs_animal_all_t',     s: 'pfs_animal_all_s' },
+  { key: 'cow',     t: 'cow',                  s: 'pfs_animal_cow_s' },
+  { key: 'buffalo', t: 'buffalo',              s: 'pfs_animal_buffalo_s' },
+  { key: 'other',   t: 'category_other_animals', s: 'pfs_animal_other_s' },
 ];
 
 const MILK_OPTS = [
-  { key: 'all',   title: 'All Capacity', subtitle: 'All milk capacity' },
-  { key: '0-5',   title: '0-5 Liters' },
-  { key: '5-8',   title: '5-8 Liters' },
-  { key: '8-10',  title: '8-10 Liters' },
-  { key: '10-12', title: '10-12 Liters' },
-  { key: '12-15', title: '12-15 Liters' },
-  { key: '15-20', title: '15-20 Liters' },
-  { key: '20+',   title: '20+ Liters' },
+  { key: 'all',   t: 'pfs_milk_all_t',  s: 'pfs_milk_all_s' },
+  { key: '0-5',   t: 'pfs_milk_0_5' },
+  { key: '5-8',   t: 'pfs_milk_5_8' },
+  { key: '8-10',  t: 'pfs_milk_8_10' },
+  { key: '10-12', t: 'pfs_milk_10_12' },
+  { key: '12-15', t: 'pfs_milk_12_15' },
+  { key: '15-20', t: 'pfs_milk_15_20' },
+  { key: '20+',   t: 'pfs_milk_20p' },
 ];
 
 const PRICE_OPTS = [
-  { key: 'all',    title: 'All Budget',     subtitle: 'Every price' },
-  { key: '0-20k',  title: '₹0-₹20 Thousand' },
-  { key: '20-50k', title: '₹20-₹50 Thousand' },
-  { key: '50-80k', title: '₹50-₹80 Thousand' },
-  { key: '80-99k', title: '₹80-₹99 Thousand' },
-  { key: '1-1.5L', title: '₹1-₹1.5 Lakh' },
-  { key: '1.5L+',  title: '₹1.5+ Lakh' },
+  { key: 'all',    t: 'pfs_price_all_t', s: 'pfs_price_all_s' },
+  { key: '0-20k',  t: 'pfs_price_0_20k' },
+  { key: '20-50k', t: 'pfs_price_20_50k' },
+  { key: '50-80k', t: 'pfs_price_50_80k' },
+  { key: '80-99k', t: 'pfs_price_80_99k' },
+  { key: '1-1.5L', t: 'pfs_price_1_15L' },
+  { key: '1.5L+',  t: 'pfs_price_15Lp' },
 ];
 
 const DISTANCE_OPTS = [
-  { key: 'nearby', title: 'Nearby',   subtitle: 'Closest only' },
-  { key: '25',     title: '25 km' },
-  { key: '50',     title: '50 km' },
-  { key: '100',    title: '100 km' },
-  { key: '200',    title: '200 km' },
-  { key: 'any',    title: 'Any distance' },
+  { key: 'nearby', t: 'pfs_dist_nearby_t', s: 'pfs_dist_nearby_s' },
+  { key: '25',     t: 'pfs_dist_25' },
+  { key: '50',     t: 'pfs_dist_50' },
+  { key: '100',    t: 'pfs_dist_100' },
+  { key: '200',    t: 'pfs_dist_200' },
+  { key: 'any',    t: 'pfs_dist_any' },
 ];
 
 const LACTATION_OPTS = [
-  { key: 'all',  title: 'All Lactations', subtitle: 'Every stage' },
-  { key: 'none', title: 'Not Delivered',  subtitle: 'Not delivered yet' },
-  { key: '1',    title: '1st Lactation',  subtitle: 'First lactation' },
-  { key: '2',    title: '2nd Lactation',  subtitle: 'Second lactation' },
-  { key: '3',    title: '3rd Lactation',  subtitle: 'Third lactation' },
-  { key: '4+',   title: '4th+ Lactation', subtitle: 'Fourth or more' },
+  { key: 'all',  t: 'pfs_lact_all_t',  s: 'pfs_lact_all_s' },
+  { key: 'none', t: 'pfs_lact_none_t', s: 'pfs_lact_none_s' },
+  { key: '1',    t: 'pfs_lact_1_t',    s: 'pfs_lact_1_s' },
+  { key: '2',    t: 'pfs_lact_2_t',    s: 'pfs_lact_2_s' },
+  { key: '3',    t: 'pfs_lact_3_t',    s: 'pfs_lact_3_s' },
+  { key: '4+',   t: 'pfs_lact_4p_t',   s: 'pfs_lact_4p_s' },
 ];
 
 const LISTED_OPTS = [
-  { key: 'any', title: 'Anytime',     subtitle: 'Every animal' },
-  { key: '1h',  title: '1 Hour Ago',  subtitle: 'Fresh animals' },
-  { key: '1d',  title: '1 Day Ago',   subtitle: "Today's animals" },
-  { key: '2d',  title: '2 Days Ago',  subtitle: 'Recent animals' },
+  { key: 'any', t: 'pfs_listed_any_t', s: 'pfs_listed_any_s' },
+  { key: '1h',  t: 'pfs_listed_1h_t',  s: 'pfs_listed_1h_s' },
+  { key: '1d',  t: 'pfs_listed_1d_t',  s: 'pfs_listed_1d_s' },
+  { key: '2d',  t: 'pfs_listed_2d_t',  s: 'pfs_listed_2d_s' },
 ];
 
 const SORT_OPTS = [
-  { key: 'recent',   title: 'Most Recent', subtitle: 'New animals first' },
-  { key: 'low',      title: 'Low Price',   subtitle: 'Cheapest animals first' },
-  { key: 'nearest',  title: 'Nearest',     subtitle: 'Nearby animals first' },
-  { key: 'farthest', title: 'Farthest',    subtitle: 'Far away animals first' },
+  { key: 'recent',   t: 'pfs_sort_recent_t',   s: 'pfs_sort_recent_s' },
+  { key: 'low',      t: 'pfs_sort_low_t',      s: 'pfs_sort_low_s' },
+  { key: 'nearest',  t: 'pfs_sort_nearest_t',  s: 'pfs_sort_nearest_s' },
+  { key: 'farthest', t: 'pfs_sort_farthest_t', s: 'pfs_sort_farthest_s' },
 ];
 
 export const DEFAULT_FILTERS = {
@@ -84,6 +84,25 @@ export const DEFAULT_FILTERS = {
   negotiableOnly: false,
 };
 
+// Render helper — passes a localized FilterPill from an option spec.
+function L({ tr, opt, selected, onClick }) {
+  return (
+    <FilterPill
+      title={tr(opt.t)}
+      subtitle={opt.s ? tr(opt.s) : undefined}
+      selected={selected}
+      onClick={onClick}
+    />
+  );
+}
+
+L.propTypes = {
+  tr: PropTypes.func.isRequired,
+  opt: PropTypes.object.isRequired,
+  selected: PropTypes.bool,
+  onClick: PropTypes.func,
+};
+
 function Toggle({ label, sub, value, onChange }) {
   return (
     <button
@@ -93,8 +112,8 @@ function Toggle({ label, sub, value, onChange }) {
       className="w-full flex items-center justify-between gap-3 rounded-2xl bg-surface-0 border border-surface-200 px-4 py-3 hover:border-brand-300 transition-colors"
     >
       <div className="text-left min-w-0">
-        <p className="text-sm font-bold text-surface-900">{label}</p>
-        {sub && <p className="text-xs text-surface-500 mt-0.5">{sub}</p>}
+        <p className="text-caption !font-bold text-surface-900">{label}</p>
+        {sub && <p className="text-micro !font-medium normal-case tracking-normal text-surface-500 mt-0.5">{sub}</p>}
       </div>
       <span
         className={`relative w-11 h-6 rounded-full transition-colors ${value ? 'bg-brand-600' : 'bg-surface-300'}`}
@@ -150,7 +169,7 @@ export default function PremiumFiltersSheet({
       onClose={onClose}
       footer={
         <div className="space-y-3">
-          <p className="flex items-center justify-center gap-1.5 text-xs text-brand-700 font-semibold">
+          <p className="flex items-center justify-center gap-1.5 text-caption text-brand-700 font-semibold">
             <ShieldCheck size={14} />
             {dirty ? tr('filter_apply') : tr('filter_no_additional')}
           </p>
@@ -162,9 +181,9 @@ export default function PremiumFiltersSheet({
       }
     >
       <header className="-mt-1">
-        <h2 className="text-2xl font-extrabold text-surface-900">{tr('premium_filters')}</h2>
-        <p className="mt-1 text-sm text-surface-500">{tr('premium_filters_sub')}</p>
-        <span className="mt-3 inline-block text-xs font-bold rounded-full bg-brand-50 text-brand-700 px-3 py-1.5 border border-brand-200">
+        <h2 className="text-h2 font-extrabold text-surface-900">{tr('premium_filters')}</h2>
+        <p className="mt-1 text-caption text-surface-500">{tr('premium_filters_sub')}</p>
+        <span className="mt-3 inline-block text-micro !font-bold rounded-full bg-brand-50 text-brand-700 px-3 py-1.5 border border-brand-200">
           {tr('filter_all_animals_showing')}
         </span>
       </header>
@@ -173,17 +192,11 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.animal = el)}>
           <FilterCard
             icon={<Sparkles size={22} />}
-            title="Choose Animal"
-            subtitle="Like outside quick cards, but more options here too"
+            title={tr('pfs_section_animal_t')}
+            subtitle={tr('pfs_section_animal_s')}
           >
             {ANIMAL_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.animal === o.key}
-                onClick={() => set('animal', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.animal === o.key} onClick={() => set('animal', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -191,17 +204,11 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.milkCapacity = el)}>
           <FilterCard
             icon={<Droplets size={22} />}
-            title="Milk Capacity"
-            subtitle="Feed API supported ranges included"
+            title={tr('pfs_section_milk_t')}
+            subtitle={tr('pfs_section_milk_s')}
           >
             {MILK_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.milkCapacity === o.key}
-                onClick={() => set('milkCapacity', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.milkCapacity === o.key} onClick={() => set('milkCapacity', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -209,17 +216,11 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.price = el)}>
           <FilterCard
             icon={<IndianRupee size={22} />}
-            title="Price"
-            subtitle="No typing needed, choose budget ranges directly"
+            title={tr('pfs_section_price_t')}
+            subtitle={tr('pfs_section_price_s')}
           >
             {PRICE_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.price === o.key}
-                onClick={() => set('price', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.price === o.key} onClick={() => set('price', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -227,17 +228,11 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.distance = el)}>
           <FilterCard
             icon={<MapPin size={22} />}
-            title="Distance & Location"
-            subtitle="Choose preferred distance to view nearby animals quickly"
+            title={tr('pfs_section_distance_t')}
+            subtitle={tr('pfs_section_distance_s')}
           >
             {DISTANCE_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.distance === o.key}
-                onClick={() => set('distance', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.distance === o.key} onClick={() => set('distance', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -245,17 +240,11 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.lactation = el)}>
           <FilterCard
             icon={<Tag size={22} />}
-            title="Lactation Stage"
-            subtitle="Shortlist by lactation stage"
+            title={tr('pfs_section_lactation_t')}
+            subtitle={tr('pfs_section_lactation_s')}
           >
             {LACTATION_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.lactation === o.key}
-                onClick={() => set('lactation', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.lactation === o.key} onClick={() => set('lactation', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -263,18 +252,12 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.listed = el)}>
           <FilterCard
             icon={<Calendar size={22} />}
-            title="When Animal Listed"
-            subtitle="Choose new or recent animals first"
+            title={tr('pfs_section_listed_t')}
+            subtitle={tr('pfs_section_listed_s')}
             columns={1}
           >
             {LISTED_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.listed === o.key}
-                onClick={() => set('listed', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.listed === o.key} onClick={() => set('listed', o.key)} />
             ))}
           </FilterCard>
         </div>
@@ -282,29 +265,23 @@ export default function PremiumFiltersSheet({
         <div ref={(el) => (sectionRefs.current.sort = el)}>
           <FilterCard
             icon={<ArrowDownNarrowWide size={22} />}
-            title="Sort & Additional Options"
-            subtitle="Set order of animals shown and deal conditions"
+            title={tr('pfs_section_sort_t')}
+            subtitle={tr('pfs_section_sort_s')}
           >
             {SORT_OPTS.map((o) => (
-              <FilterPill
-                key={o.key}
-                title={o.title}
-                subtitle={o.subtitle}
-                selected={local.sort === o.key}
-                onClick={() => set('sort', o.key)}
-              />
+              <L key={o.key} tr={tr} opt={o} selected={local.sort === o.key} onClick={() => set('sort', o.key)} />
             ))}
           </FilterCard>
           <div className="mt-3 space-y-2.5">
             <Toggle
-              label="Nearby Only"
-              sub="When off, all distance animals will show"
+              label={tr('pfs_toggle_nearby_t')}
+              sub={tr('pfs_toggle_nearby_s')}
               value={local.nearbyOnly}
               onChange={(v) => set('nearbyOnly', v)}
             />
             <Toggle
-              label="Negotiable Only"
-              sub="Only show animals where bargaining is possible"
+              label={tr('pfs_toggle_negotiable_t')}
+              sub={tr('pfs_toggle_negotiable_s')}
               value={local.negotiableOnly}
               onChange={(v) => set('negotiableOnly', v)}
             />

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../hooks/useLanguage';
-import { LANG_OPTIONS } from '../../i18n';
+import useLanguage from '@/hooks/useLanguage';
+import { LANG_OPTIONS } from '@/i18n';
 
 // Segmented control switching between EN / हि / मर.
 // `variant="solid"` for dark headers, `variant="light"` for white backgrounds.
@@ -32,7 +32,7 @@ export default function LanguageSwitcher({ variant = 'light', className = '' }) 
           aria-label={label}
           onClick={() => changeLang(code)}
           className={`
-            px-3 py-1 text-xs font-bold rounded-full transition-all duration-200
+            px-3 py-1 text-caption font-bold rounded-full transition-all duration-200
             ${lang === code ? activeBtn : idleBtn}
           `}
         >

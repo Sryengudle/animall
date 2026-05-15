@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../../hooks/useLanguage';
-import { Card, Badge, ImageWithFallback } from '../../ui';
-import { ANIMAL_META, breedI18nKey, calvingI18nKey } from '../../../constants/animals';
-import { formatPrice, formatPhoneDisplay } from '../../../utils/formatters';
+import useLanguage from '@/hooks/useLanguage';
+import { Card, Badge, ImageWithFallback } from '@/components/ui';
+import { ANIMAL_META, breedI18nKey, calvingI18nKey } from '@/constants/animals';
+import { formatPrice, formatPhoneDisplay } from '@/utils/formatters';
 
 export default function StepReview({ value, previews }) {
   const { tr } = useLanguage();
@@ -21,8 +21,8 @@ export default function StepReview({ value, previews }) {
   return (
     <section className="space-y-4">
       <header>
-        <h2 className="text-xl font-bold text-surface-900">{tr('sell_review_title')}</h2>
-        <p className="text-sm text-surface-500 mt-1">{tr('sell_review_subtitle')}</p>
+        <h2 className="text-h2 font-bold text-surface-900">{tr('sell_review_title')}</h2>
+        <p className="text-body-sm text-surface-500 mt-1">{tr('sell_review_subtitle')}</p>
       </header>
 
       <Card className="overflow-hidden">
@@ -33,14 +33,14 @@ export default function StepReview({ value, previews }) {
             <ImageWithFallback src={null} alt="" fallback={meta.emoji} className="w-full h-56" />
           )}
           <div className="absolute bottom-3 left-3">
-            <Badge tone="green" className="!px-3 !py-1.5 !text-sm shadow-lg backdrop-blur-sm bg-white/90">
+            <Badge tone="green" className="!px-3 !py-1.5 !text-body-sm shadow-lg backdrop-blur-sm bg-white/90">
               {value.price ? formatPrice(value.price) : '—'}
             </Badge>
           </div>
         </div>
         <div className="p-4 space-y-2">
-          <p className="text-base font-bold text-surface-900">{meta.emoji} {tr(value.type)}</p>
-          <dl className="text-sm divide-y divide-surface-100">
+          <p className="text-body font-bold text-surface-900">{meta.emoji} {tr(value.type)}</p>
+          <dl className="text-body-sm divide-y divide-surface-100">
             {fields.map(({ key, label, display }) => (
               <div key={key} className="flex justify-between py-2 gap-3">
                 <dt className="text-surface-500">{label}</dt>

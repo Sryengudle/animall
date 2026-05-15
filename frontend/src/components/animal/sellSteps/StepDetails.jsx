@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../../hooks/useLanguage';
-import { Input, Textarea, Chip } from '../../ui';
-import { BREEDS, CALVING_OPTIONS, breedI18nKey, calvingI18nKey } from '../../../constants/animals';
+import useLanguage from '@/hooks/useLanguage';
+import { Input, Textarea, Chip } from '@/components/ui';
+import { BREEDS, CALVING_OPTIONS, breedI18nKey, calvingI18nKey } from '@/constants/animals';
 
 export default function StepDetails({ value, onChange, errors }) {
   const { tr } = useLanguage();
@@ -13,14 +13,14 @@ export default function StepDetails({ value, onChange, errors }) {
   return (
     <section className="space-y-5">
       <header>
-        <h2 className="text-xl font-bold text-surface-900">{tr('sell_step_details')}</h2>
-        <p className="text-sm text-surface-500 mt-1">{tr('sell_price_hint')}</p>
+        <h2 className="text-h2 font-bold text-surface-900">{tr('sell_step_details')}</h2>
+        <p className="text-body-sm text-surface-500 mt-1">{tr('sell_price_hint')}</p>
       </header>
 
       {/* Breed */}
       {breedKeys.length > 0 && (
         <div>
-          <p className="text-sm font-bold text-surface-800 mb-2">
+          <p className="text-body-sm font-bold text-surface-800 mb-2">
             {tr('sell_pick_breed')} <span className="text-red-500">*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -30,14 +30,14 @@ export default function StepDetails({ value, onChange, errors }) {
               </Chip>
             ))}
           </div>
-          {errors?.breed && <p className="mt-1.5 text-xs font-semibold text-red-500">{errors.breed}</p>}
+          {errors?.breed && <p className="mt-1.5 text-caption font-semibold text-red-500">{errors.breed}</p>}
         </div>
       )}
 
       {/* Calving */}
       {showCalving && (
         <div>
-          <p className="text-sm font-bold text-surface-800 mb-2">{tr('sell_pick_calving')}</p>
+          <p className="text-body-sm font-bold text-surface-800 mb-2">{tr('sell_pick_calving')}</p>
           <div className="flex flex-wrap gap-2">
             {CALVING_OPTIONS.map((c) => (
               <Chip key={c} active={value.calving === c} onClick={() => set('calving', c)}>

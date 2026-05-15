@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
-import useLanguage from '../../hooks/useLanguage';
-import { BottomSheet, Button, Chip } from '../ui';
-import { formatPrice } from '../../utils/formatters';
+import useLanguage from '@/hooks/useLanguage';
+import { BottomSheet, Button, Chip } from '@/components/ui';
+import { formatPrice } from '@/utils/formatters';
 
 // Filter bottom sheet — price slider + breed list (when a single category is selected).
 export default function AnimalFilters({
@@ -28,8 +28,8 @@ export default function AnimalFilters({
         {/* Price range */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold text-surface-800">{tr('buy_filter_price')}</p>
-            <p className="text-xs font-semibold text-primary-700">
+            <p className="text-body-sm font-bold text-surface-800">{tr('buy_filter_price')}</p>
+            <p className="text-caption font-semibold text-primary-700">
               {formatPrice(min)} – {formatPrice(max)}
             </p>
           </div>
@@ -52,7 +52,7 @@ export default function AnimalFilters({
         {/* Breeds (optional) */}
         {breedOptions.length > 0 && (
           <div>
-            <p className="text-sm font-bold text-surface-800 mb-2">{tr('buy_filter_breed')}</p>
+            <p className="text-body-sm font-bold text-surface-800 mb-2">{tr('buy_filter_breed')}</p>
             <div className="flex flex-wrap gap-2">
               <Chip active={!activeBreed} onClick={() => setActiveBreed('')}>{tr('all')}</Chip>
               {breedOptions.map(({ value, label }) => (

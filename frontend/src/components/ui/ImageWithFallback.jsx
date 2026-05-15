@@ -18,7 +18,7 @@ export default function ImageWithFallback({
   if (!src || status === 'error') {
     return (
       <div className={`flex items-center justify-center bg-gradient-to-br from-primary-50 to-accent-50 ${className}`}>
-        <span className="text-5xl select-none" aria-label={alt}>{fallback}</span>
+        <span className="text-display-xl select-none" aria-label={alt}>{fallback}</span>
       </div>
     );
   }

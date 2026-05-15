@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../services/api';
-import { ANIMAL_META } from '../../constants/animals';
+import api from '@/services/api';
+import { ANIMAL_META } from '@/constants/animals';
 
 // Re-export for compatibility — some legacy imports may still reference it here.
 export { ANIMAL_META };
@@ -160,6 +160,42 @@ export const deleteAnimal = createAsyncThunk(
   }
 );
 
+/**
+ * Report a listing for moderator review. Buyer-side action — backend rejects
+ * if the reporter is the seller, and dedupes if they've already reported.
+ */
+export const reportAnimal = createAsyncThunk(
+  'animals/report',
+  async ({ id, reason, details, token }, { rejectWithValue }) => {
+    try {
+      const res = await api.post(`/animals/${id}/report`, { reason, details }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Report failed');
+    }
+  },
+);
+
+/**
+ * Edit an existing listing. Multipart body so the owner can also upload new
+ * images/videos. Pass mode='replace' to swap all media; default appends.
+ */
+export const updateAnimal = createAsyncThunk(
+  'animals/update',
+  async ({ id, formData, token, mode = 'append' }, { rejectWithValue }) => {
+    try {
+      const res = await api.put(`/animals/${id}?mode=${mode}`, formData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Update failed');
+    }
+  }
+);
+
 // ── Slice
 
 const animalsSlice = createSlice({
@@ -193,6 +229,13 @@ const animalsSlice = createSlice({
         const id = action.payload;
         state.list = state.list.filter((a) => a._id !== id);
         state.myListings = state.myListings.filter((a) => a._id !== id);
+      })
+
+      .addCase(updateAnimal.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const merge = (arr) => arr.map((a) => (a._id === updated._id ? updated : a));
+        state.list = merge(state.list);
+        state.myListings = merge(state.myListings);
       });
   },
 });

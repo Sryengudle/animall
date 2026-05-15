@@ -1,5 +1,5 @@
 import { SearchCheck, Notebook } from 'lucide-react';
-import CowIcon from '../components/icons/CowIcon';
+import CowIcon from '@/components/icons/CowIcon';
 
 // 3-tab bottom navigation (Pashu Mandi-style flat layout).
 // Buy uses SearchCheck (magnifier with a small check) — closest to the

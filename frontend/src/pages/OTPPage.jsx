@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-import { verifyOTP, sendOTP } from '../store/slices/authSlice';
-import useLanguage from '../hooks/useLanguage';
-import AuthLoadingScreen from '../components/common/AuthLoadingScreen';
-import LanguageSwitcher from '../components/common/LanguageSwitcher';
-import { Button } from '../components/ui';
-import { formatPhoneDisplay } from '../utils/formatters';
+import { verifyOTP, sendOTP } from '@/store/slices/authSlice';
+import useLanguage from '@/hooks/useLanguage';
+import AuthLoadingScreen from '@/components/common/AuthLoadingScreen';
+import LanguageSwitcher from '@/components/common/LanguageSwitcher';
+import { Button } from '@/components/ui';
+import { formatPhoneDisplay } from '@/utils/formatters';
 
 const RESEND_SECONDS = 30;
 
@@ -99,9 +99,9 @@ export default function OTPPage() {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-primary-100 via-accent-50 to-accent-100">
       <header className="flex items-center justify-between px-4 py-3 bg-surface-0/70 backdrop-blur-md shadow-sm">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🐄</span>
+          <span className="text-h1">🐄</span>
           <div className="leading-tight">
-            <p className="text-primary-700 font-extrabold text-base">Animall</p>
+            <p className="text-primary-700 font-extrabold text-body">{tr('app_name')}</p>
             <p className="text-surface-500 text-[10px]">{tr('app_tagline')}</p>
           </div>
         </div>
@@ -127,16 +127,16 @@ export default function OTPPage() {
         transition={{ type: 'spring', damping: 22, stiffness: 240 }}
         className="bg-surface-0 rounded-t-3xl shadow-2xl px-6 pt-7 pb-8 -mt-2"
       >
-        <h2 className="text-2xl font-extrabold text-surface-900 text-center">{tr('enter_otp')}</h2>
-        <p className="text-center text-surface-500 text-sm mt-1 mb-2">{tr('otp_six_digit')}</p>
-        <p className="text-center text-sm font-bold text-surface-800 mb-3">
+        <h2 className="text-h1 font-extrabold text-surface-900 text-center">{tr('enter_otp')}</h2>
+        <p className="text-center text-surface-500 text-body-sm mt-1 mb-2">{tr('otp_six_digit')}</p>
+        <p className="text-center text-body-sm font-bold text-surface-800 mb-3">
           {formatPhoneDisplay(pendingPhone)}
         </p>
 
         {demoOtp && (
           <div className="bg-accent-50 border border-accent-200 rounded-2xl px-4 py-2 mb-4 text-center">
             <p className="text-[11px] text-accent-700">{tr('otp_demo_label')}</p>
-            <p className="text-xl font-extrabold text-accent-900 tracking-widest">{demoOtp}</p>
+            <p className="text-h2 font-extrabold text-accent-900 tracking-widest">{demoOtp}</p>
           </div>
         )}
 
@@ -153,7 +153,7 @@ export default function OTPPage() {
                 value={d}
                 onChange={(e) => setDigit(i, e.target.value)}
                 onKeyDown={(e) => handleKey(i, e)}
-                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-extrabold rounded-2xl border-2 border-surface-200 bg-surface-0 outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
+                className="w-12 h-14 sm:w-14 sm:h-16 text-center text-h1 font-extrabold rounded-2xl border-2 border-surface-200 bg-surface-0 outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
               />
             ))}
           </div>
@@ -163,7 +163,7 @@ export default function OTPPage() {
           </Button>
         </form>
 
-        <div className="flex justify-between mt-4 text-sm font-semibold">
+        <div className="flex justify-between mt-4 text-body-sm font-semibold">
           <button type="button" onClick={() => navigate('/login')} className="text-surface-500">
             {tr('change_number')}
           </button>

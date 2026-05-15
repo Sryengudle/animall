@@ -1,4 +1,4 @@
-import { Card, Skeleton } from '../ui';
+import { Card, Skeleton } from '@/components/ui';
 
 // Placeholder shown while listings load — mirrors the AnimalCard layout.
 export default function AnimalCardSkeleton() {

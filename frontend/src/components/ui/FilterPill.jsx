@@ -17,11 +17,11 @@ export default function FilterPill({ title, subtitle, selected, onClick }) {
           : 'bg-surface-0 border border-surface-200 hover:border-brand-400 hover:bg-brand-50/40'}
       `}
     >
-      <div className={`text-sm font-bold leading-tight ${selected ? 'text-white' : 'text-brand-800'}`}>
+      <div className={`text-caption !font-bold leading-tight ${selected ? 'text-white' : 'text-brand-800'}`}>
         {title}
       </div>
       {subtitle && (
-        <div className={`text-xs mt-1 ${selected ? 'text-white/85' : 'text-brand-700/70'}`}>
+        <div className={`text-micro !font-medium normal-case tracking-normal mt-1 ${selected ? 'text-white/85' : 'text-brand-700/70'}`}>
           {subtitle}
         </div>
       )}

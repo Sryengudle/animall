@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { Sun, Moon, Monitor } from 'lucide-react';
-import useLanguage from '../../hooks/useLanguage';
-import { setTheme } from '../../store/slices/uiSlice';
+import useLanguage from '@/hooks/useLanguage';
+import { setTheme } from '@/store/slices/uiSlice';
 
 const OPTIONS = [
   { value: 'light',  icon: Sun,     labelKey: 'theme_light' },

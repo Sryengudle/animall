@@ -4,20 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { Camera, MapPin, Info, Phone, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import Header from '../components/common/Header';
-import LocationSheet from '../components/common/LocationSheet';
-import { updateUser } from '../store/slices/authSlice';
-import { setLang } from '../store/slices/uiSlice';
-import useLanguage from '../hooks/useLanguage';
-import { LANG_OPTIONS } from '../i18n';
-import { Button, Select } from '../components/ui';
+import Header from '@/components/common/Header';
+import LocationSheet from '@/components/common/LocationSheet';
+import { updateProfile, uploadProfilePhoto } from '@/store/slices/authSlice';
+import { setLang } from '@/store/slices/uiSlice';
+import useLanguage from '@/hooks/useLanguage';
+import { LANG_OPTIONS } from '@/i18n';
+import { Button, Select } from '@/components/ui';
+import { EMPTY_ADDRESS, formatAddress, hasAddress } from '@/utils/addressFormat';
 
 // Edit Profile — Pashu Mandi-style single-form layout (reference images 11, 14).
 // Avatar with camera badge at top, then stacked fields with consistent typography.
 // Language is a Select (per the user's "instead of segment toggle, give Select").
 function FieldLabel({ children, required }) {
   return (
-    <label className="block text-sm font-bold text-surface-900 mb-2">
+    <label className="block text-body-sm font-bold text-surface-900 mb-2">
       {children}
       {required && <span className="ml-1 text-accent-600">*</span>}
     </label>
@@ -74,10 +75,10 @@ export default function EditProfilePage() {
   const [form, setForm] = useState({
     name: user?.name || '',
     language: lang,
-    location: user?.location || '',
+    address: { ...EMPTY_ADDRESS, ...(user?.address || {}) },
     whatsapp: user?.whatsapp || '',
     phone: user?.phone || '',
-    dob: user?.dob || '',
+    dob: user?.dob ? String(user.dob).slice(0, 10) : '',
     livestock: user?.livestock || '',
     occupation: user?.occupation || '',
     experience: user?.experience || '',
@@ -86,37 +87,58 @@ export default function EditProfilePage() {
   });
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const addressLine = formatAddress(form.address) || user?.location || '';
 
+  // Photo: keep the file aside in state and upload AFTER the profile save
+  // succeeds. We also set a data-URL preview so the user sees their pick before
+  // it lands on the server.
+  const [photoFile, setPhotoFile] = useState(null);
   function handlePhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPhotoFile(file);
     const reader = new FileReader();
     reader.onload = () => set('profilePhoto', reader.result);
     reader.readAsDataURL(file);
   }
 
-  function handleLocationPicked(payload) {
-    if (payload.kind === 'pincode') set('location', payload.pincode);
-    if (payload.kind === 'address') set('location', payload.address);
-    if (payload.kind === 'gps') set('location', `${payload.coords.lat.toFixed(3)}, ${payload.coords.lng.toFixed(3)}`);
+  function handleLocationPicked(addr) {
+    set('address', { ...EMPTY_ADDRESS, ...addr });
   }
 
-  function handleSubmit(e) {
+  const [saving, setSaving] = useState(false);
+  async function handleSubmit(e) {
     e.preventDefault();
-    dispatch(updateUser({
-      name: form.name,
-      location: form.location,
-      whatsapp: form.whatsapp,
-      dob: form.dob,
-      livestock: form.livestock,
-      occupation: form.occupation,
-      experience: form.experience,
-      education: form.education,
-      profilePhoto: form.profilePhoto,
-    }));
-    if (form.language !== lang) dispatch(setLang(form.language));
-    toast.success(tr('done'));
-    navigate('/profile');
+    if (saving) return;
+    setSaving(true);
+    try {
+      // Save all fields (except profilePhoto — that goes via a separate upload
+      // endpoint because it's a file, not a JSON value). Photo upload happens
+      // after, so its returned URL overwrites the data-URL preview in state.
+      await dispatch(updateProfile({
+        name: form.name,
+        address: form.address,
+        location: formatAddress(form.address),
+        whatsapp: form.whatsapp,
+        dob: form.dob || null,
+        livestock: Number(form.livestock) || 0,
+        occupation: form.occupation,
+        experience: form.experience,
+        education: form.education,
+      })).unwrap();
+
+      if (photoFile) {
+        await dispatch(uploadProfilePhoto(photoFile)).unwrap();
+      }
+
+      if (form.language !== lang) dispatch(setLang(form.language));
+      toast.success(tr('done'));
+      navigate('/profile');
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : tr('error_generic'));
+    } finally {
+      setSaving(false);
+    }
   }
 
   const langOptions = LANG_OPTIONS.map(({ code, label }) => ({ value: code, label }));
@@ -153,7 +175,7 @@ export default function EditProfilePage() {
         {/* Avatar with camera overlay */}
         <div className="flex flex-col items-center text-center">
           <div className="relative">
-            <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br from-surface-100 to-surface-200 grid place-items-center text-5xl text-surface-500 shadow-card">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-gradient-to-br from-surface-100 to-surface-200 grid place-items-center text-display-xl text-surface-500 shadow-card">
               {form.profilePhoto
                 ? <img src={form.profilePhoto} alt="" className="w-full h-full object-cover" />
                 : (form.name?.[0]?.toUpperCase() || '👤')}
@@ -168,8 +190,8 @@ export default function EditProfilePage() {
             </button>
             <input ref={photoRef} type="file" accept="image/*" className="sr-only" onChange={handlePhoto} />
           </div>
-          <p className="mt-3 text-base font-extrabold text-brand-800">{tr('profile_photo_cta')}</p>
-          <p className="mt-1 text-xs text-surface-500 max-w-xs">{tr('profile_photo_hint')}</p>
+          <p className="mt-3 text-body font-extrabold text-brand-800">{tr('profile_photo_cta')}</p>
+          <p className="mt-1 text-caption text-surface-500 max-w-xs">{tr('profile_photo_hint')}</p>
         </div>
 
         {/* Name */}
@@ -189,27 +211,30 @@ export default function EditProfilePage() {
           options={langOptions}
         />
 
-        {/* Address — input + Change link to open LocationSheet */}
+        {/* Address — tap to open LocationSheet (GPS / pincode / manual) */}
         <div>
           <FieldLabel required>{tr('edit_profile_address')}</FieldLabel>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.location || ''}
-              onChange={(e) => set('location', e.target.value)}
-              placeholder={tr('tell_your_location')}
-              className="w-full pl-4 pr-28 py-3.5 rounded-2xl bg-surface-0 border border-surface-200 text-surface-900 placeholder:text-surface-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors"
-            />
-            <button
-              type="button"
-              onClick={() => setLocationSheetOpen(true)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-sm font-bold text-brand-700 hover:text-brand-800 px-2 py-1.5"
-            >
-              <MapPin size={14} />
-              {tr('loc_change')}
-            </button>
-          </div>
-          <p className="mt-2 flex items-center gap-1.5 text-xs text-accent-700">
+          <button
+            type="button"
+            onClick={() => setLocationSheetOpen(true)}
+            className="w-full flex items-start gap-3 text-left px-4 py-3.5 rounded-2xl bg-surface-0 border border-surface-200 hover:border-brand-300 hover:bg-brand-50/30 focus:outline-none focus:ring-2 focus:ring-brand-100 transition-colors"
+          >
+            <MapPin size={20} className="mt-0.5 shrink-0 text-brand-700" />
+            <span className="min-w-0 flex-1">
+              {hasAddress(form.address) ? (
+                <>
+                  <span className="block text-body font-bold text-surface-900 truncate">
+                    {[form.address.area, form.address.city].filter(Boolean).join(', ') || form.address.district || form.address.pincode}
+                  </span>
+                  <span className="block text-caption text-surface-600 truncate">{addressLine}</span>
+                </>
+              ) : (
+                <span className="block text-body text-surface-500">{tr('tell_your_location')}</span>
+              )}
+            </span>
+            <span className="text-body-sm font-bold text-brand-700 shrink-0">{tr('loc_change')}</span>
+          </button>
+          <p className="mt-2 flex items-center gap-1.5 text-caption text-accent-700">
             <Info size={12} />
             {tr('profile_address_warn')}
           </p>
@@ -284,7 +309,14 @@ export default function EditProfilePage() {
         />
 
         {/* Submit */}
-        <Button type="submit" size="lg" fullWidth className="!rounded-2xl !bg-brand-700 hover:!bg-brand-800">
+        <Button
+          type="submit"
+          size="lg"
+          fullWidth
+          loading={saving}
+          disabled={saving}
+          className="!rounded-2xl !bg-brand-700 hover:!bg-brand-800"
+        >
           {tr('edit_profile_save')}
         </Button>
       </form>
@@ -293,6 +325,7 @@ export default function EditProfilePage() {
         open={locationSheetOpen}
         onClose={() => setLocationSheetOpen(false)}
         onSelect={handleLocationPicked}
+        initial={form.address}
       />
     </div>
   );

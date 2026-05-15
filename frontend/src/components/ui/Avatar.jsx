@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 
 const SIZES = {
-  xs: 'w-7 h-7 text-xs',
-  sm: 'w-9 h-9 text-sm',
-  md: 'w-12 h-12 text-base',
-  lg: 'w-16 h-16 text-xl',
-  xl: 'w-24 h-24 text-3xl',
+  xs: 'w-7 h-7 text-caption',
+  sm: 'w-9 h-9 text-body-sm',
+  md: 'w-12 h-12 text-body',
+  lg: 'w-16 h-16 text-h2',
+  xl: 'w-24 h-24 text-display',
 };
 
 export default function Avatar({ src, name = '', size = 'md', className = '' }) {
