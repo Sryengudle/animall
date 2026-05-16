@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const otpController = require('../controllers/otp.controller');
 
 // Helper: generate 6-digit OTP
 const genOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -64,56 +65,56 @@ function sanitizeAddress(input) {
  * Body: { phone }
  * Demo mode: returns demo_otp in response. Swap to real SMS gateway later.
  */
-router.post('/send-otp', async (req, res) => {
-  const { phone } = req.body;
-  if (!phone || !/^[6-9]\d{9}$/.test(phone))
-    return res.status(400).json({ message: 'Invalid phone number' });
+// router.post('/send-otp', async (req, res) => {
+//   const { phone } = req.body;
+//   if (!phone || !/^[6-9]\d{9}$/.test(phone))
+//     return res.status(400).json({ message: 'Invalid phone number' });
 
-  try {
-    const otp = genOTP();
-    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+//   try {
+//     const otp = genOTP();
+//     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 min
 
-    await User.findOneAndUpdate(
-      { phone },
-      { otp, otpExpiry },
-      { upsert: true, new: true }
-    );
+    // await User.findOneAndUpdate(
+    //   { phone },
+    //   { otp, otpExpiry },
+    //   { upsert: true, new: true }
+    // );
 
-    console.log(`OTP for ${phone}: ${otp}`);
-    res.json({ message: 'OTP sent', demo_otp: otp });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+    // console.log(`OTP for ${phone}: ${otp}`);
+    // res.json({ message: 'OTP sent', demo_otp: otp });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 /**
  * POST /api/auth/verify-otp
  * Body: { phone, otp }
  */
-router.post('/verify-otp', async (req, res) => {
-  const { phone, otp } = req.body;
-  if (!phone || !otp)
-    return res.status(400).json({ message: 'Phone and OTP required' });
+// router.post('/verify-otp', async (req, res) => {
+  // const { phone, otp } = req.body;
+  // if (!phone || !otp)
+  //   return res.status(400).json({ message: 'Phone and OTP required' });
 
-  try {
-    const user = await User.findOne({ phone });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+  // try {
+  //   const user = await User.findOne({ phone });
+  //   if (!user) return res.status(404).json({ message: 'User not found' });
 
-    if (user.otp !== otp || user.otpExpiry < new Date())
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+  //   if (user.otp !== otp || user.otpExpiry < new Date())
+  //     return res.status(400).json({ message: 'Invalid or expired OTP' });
 
-    user.otp = undefined;
-    user.otpExpiry = undefined;
-    await user.save();
+  //   user.otp = undefined;
+  //   user.otpExpiry = undefined;
+  //   await user.save();
 
-    res.json({
-      token: signToken(user._id),
-      user: publicUser(user),
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+  //   res.json({
+  //     token: signToken(user._id),
+  //     user: publicUser(user),
+  //   });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
 
 /**
  * PUT /api/auth/profile
@@ -179,5 +180,8 @@ router.post('/profile-photo', protect, upload.single('photo'), async (req, res) 
     res.status(500).json({ message: err.message });
   }
 });
+
+router.post("/send-otp", otpController.sendOtp);
+router.post("/verify-otp", otpController.verifyOtp);
 
 module.exports = router;

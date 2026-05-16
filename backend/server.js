@@ -10,6 +10,9 @@ const app = express();
 // Connect MongoDB
 connectDB();
 
+// Add this line BEFORE applying your rate-limit middleware:
+app.set('trust proxy', 1); 
+
 // Rate limiting - protect OTP endpoint from abuse
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
