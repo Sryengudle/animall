@@ -1,4 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+import {
+  getAuth,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+} from "firebase/auth";
+
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -10,14 +17,44 @@ import useLanguage from '@/hooks/useLanguage';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { Button, Input } from '@/components/ui';
 import { isValidIndianMobile } from '@/utils/formatters';
+import { auth } from '@/services/firebase';
 
 export default function LoginPage() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { tr } = useLanguage();
   const { loading } = useSelector((s) => s.auth);
+
+  const setupRecaptcha = async () => {
+
+    try {
+
+      if (!window.recaptchaVerifier) {
+
+        window.recaptchaVerifier =
+          new RecaptchaVerifier(
+            auth,
+            'recaptcha-container',
+            {
+              size: "invisible",
+
+              callback: () => {
+                console.log("Recaptcha solved");
+              },
+            }
+          );
+
+        await window.recaptchaVerifier.render();
+      }
+
+    } catch (err) {
+
+      console.error("Recaptcha Error:", err);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,10 +63,44 @@ export default function LoginPage() {
       return;
     }
     setError('');
-    const result = await dispatch(sendOTP(phone));
-    if (sendOTP.fulfilled.match(result)) {
+    console.log('Auth:', auth);
+    const result = await sendOtp();
+    if (result?.verificationId) {
       toast.success(tr('otp_sent'));
       navigate('/otp');
+    }
+  };
+
+  // Send OTP
+  const sendOtp = async () => {
+
+    try {
+
+      await setupRecaptcha();
+
+      const appVerifier =
+        window.recaptchaVerifier;
+
+      if (!appVerifier) {
+        console.log("No verifier found");
+        return;
+      }
+      const formattedPhone = `+91${phone}`;
+      const result =
+        await signInWithPhoneNumber(
+          auth,
+          formattedPhone,
+          appVerifier
+        );
+
+      console.log(result);
+
+      setConfirmationResult(result);
+      return { verificationId: result?.verificationId };
+
+    } catch (error) {
+
+      console.error("OTP ERROR:", error);
     }
   };
 
@@ -110,6 +181,7 @@ export default function LoginPage() {
             {tr('get_otp')}
           </Button>
         </form>
+        <div id="recaptcha-container"></div>
 
         <div className="mt-5 inline-flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-2xl px-3 py-2 w-full">
           <CheckCircle2 className="text-primary-600 shrink-0" size={16} />

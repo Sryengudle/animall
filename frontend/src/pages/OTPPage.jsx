@@ -25,7 +25,7 @@ export default function OTPPage() {
   const inputsRef = useRef([]);
 
   // Bounce to login if user landed directly without a pending phone.
-  useEffect(() => { if (!pendingPhone) navigate('/login'); }, [pendingPhone, navigate]);
+  // useEffect(() => { if (!pendingPhone) navigate('/login'); }, [pendingPhone, navigate]);
 
   // Resend countdown
   useEffect(() => {
@@ -67,6 +67,26 @@ export default function OTPPage() {
     inputsRef.current[Math.min(text.length, 5)]?.focus();
   };
 
+  const verifyOtp = async (confirmationResult, otp) => {
+
+    try {
+
+      const result =  await confirmationResult.confirm(otp);
+
+      const token = await result.user.getIdToken();
+
+      console.log(token);
+
+      alert("Login Success");
+
+    } catch (error) {
+
+      console.error(error);
+
+      alert("Invalid OTP");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e?.preventDefault?.();
     if (otp.length !== 6) {
@@ -74,7 +94,10 @@ export default function OTPPage() {
       return;
     }
     setIsVerifying(true);
-    const result = await dispatch(verifyOTP({ phone: pendingPhone, otp }));
+    const result = await verifyOtp(pendingPhone, otp );
+    // const result = await dispatch(verifyOTP({ phone: pendingPhone, otp }));
+    // const result = await verifyOtp();
+    console.log('verifyOtp result:', result);
     if (verifyOTP.fulfilled.match(result)) {
       toast.success(tr('login_success'));
       setTimeout(() => navigate('/'), 600);
