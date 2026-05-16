@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapPin, Phone, Heart, Share2, Play, ChevronLeft, ChevronRight,
-  Droplets, Calendar, Tag, Repeat,
+  Droplets, Tag, Repeat,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useLanguage from '@/hooks/useLanguage';
@@ -110,18 +110,56 @@ function MediaSlider({ videoUrl, images, title, posterUrl }) {
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPlaying(true); }}
             aria-label="Play video"
-            className="absolute inset-0 grid place-items-center bg-black/20 hover:bg-black/35 transition-colors"
+            className="absolute inset-0 group"
           >
-            {current.poster && (
+            {/* Frame-zero poster — letting the browser render the video at
+                preload=metadata gives us a real thumbnail with no server-side
+                ffmpeg pipeline. Falls back to an explicit posterUrl or the
+                first photo if either is provided. */}
+            {current.poster ? (
               <img
                 src={current.poster}
                 alt=""
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover -z-[1]"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <video
+                src={current.src}
+                muted
+                playsInline
+                preload="metadata"
+                tabIndex={-1}
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover bg-surface-900 pointer-events-none"
+                // Nudge the frame slightly past zero — some encoders show a
+                // black opening frame. 0.1s usually lands on real content.
+                onLoadedMetadata={(e) => { try { e.currentTarget.currentTime = 0.1; } catch { /* ignore */ } }}
               />
             )}
-            <span className="relative grid place-items-center h-12 w-12 rounded-full bg-white/95 text-brand-800 shadow-lg">
-              <Play size={22} fill="currentColor" />
+
+            {/* Soft dark wash so the play button stays readable on bright frames */}
+            <span
+              className="absolute inset-0 transition-colors group-hover:bg-black/30"
+              style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.10) 45%, rgba(0,0,0,0.45) 100%)' }}
+            />
+
+            {/* "VIDEO" badge bottom-left so buyers know this slide is a video
+                even before the play button registers. "VIDEO" stays in Latin
+                script — it's an internationally recognized term. */}
+            <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/55 text-white text-micro-caps backdrop-blur-sm">
+              <Play size={9} fill="currentColor" strokeWidth={0} />
+              VIDEO
+            </span>
+
+            {/* Big play button — pulsing ring on hover, scales up on press */}
+            <span className="absolute inset-0 grid place-items-center">
+              <span className="relative">
+                <span className="absolute inset-0 rounded-full bg-white/30 blur-md group-hover:bg-white/50 transition-colors" />
+                <span className="relative grid place-items-center h-14 w-14 rounded-full bg-white/95 text-brand-800 shadow-xl ring-4 ring-white/20 group-hover:scale-105 transition-transform">
+                  <Play size={24} fill="currentColor" strokeWidth={0} className="ml-0.5" />
+                </span>
+              </span>
             </span>
           </button>
         )
@@ -395,7 +433,8 @@ export default function ListingCard({
           if (breedLabel && !title?.toLowerCase().includes(breedLabel.toLowerCase())) {
             stats.push({ icon: Tag, value: breedLabel, accent: 'brand' });
           }
-          if (age) stats.push({ icon: Calendar, value: `${age} ${tr(ageUnit || 'years')}`, accent: 'brand' });
+          // Age intentionally hidden on the listing card — kept on the detail
+          // page where buyers have time to read full specs.
 
           if (stats.length === 0) return null;
           const palette = {

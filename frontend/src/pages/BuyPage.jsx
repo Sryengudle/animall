@@ -86,27 +86,16 @@ function applyClientResiduals(list, f) {
   return arr;
 }
 
-// CategoryTile data — `labelKey` resolves via i18n so it shows गाय / भैंस /
-// अन्य पशु in Hindi instead of Cow / Buffalo / Other Animals.
+// CategoryTile data — each tile renders a big emoji on its own brand-tinted
+// gradient via CategoryTile's `typeKey` palette. Photo backgrounds were
+// retired because the buffalo + other images failed to load reliably and
+// left blank tiles in production.
 const CATEGORY_TILES = [
-  {
-    key: 'cow',
-    labelKey: 'cow',
-    image: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?w=600&q=70&auto=format',
-    fallback: '🐄',
-  },
-  {
-    key: 'buffalo',
-    labelKey: 'buffalo',
-    image: 'https://images.unsplash.com/photo-1605132949454-9f9b3ee7f3d3?w=600&q=70&auto=format',
-    fallback: '🐃',
-  },
-  {
-    key: 'other',
-    labelKey: 'category_other_animals',
-    image: null,
-    fallback: '🐐',
-  },
+  { key: 'cow',     labelKey: 'cow',                     emoji: '🐄' },
+  { key: 'buffalo', labelKey: 'buffalo',                 emoji: '🐃' },
+  // "Other" shows a cluster so the farmer sees at a glance that this group
+  // covers multiple species — goat, sheep, chicken, and pig.
+  { key: 'other',   labelKey: 'category_other_animals',  emoji: ['🐐', '🐑', '🐔', '🐖'] },
 ];
 
 // Filter-value labels — the all/any defaults route through i18n. Range strings
@@ -206,8 +195,8 @@ export default function BuyPage() {
             <CategoryTile
               key={c.key}
               label={tr(c.labelKey)}
-              image={c.image}
-              fallbackEmoji={c.fallback}
+              emoji={c.emoji}
+              typeKey={c.key}
               selected={filters.animal === c.key}
               onClick={() => pickCategory(c.key)}
             />

@@ -15,8 +15,11 @@ const mql = () =>
 
 const resolveEffective = (mode) => {
   if (mode === 'dark') return 'dark';
-  if (mode === 'light') return 'light';
-  return mql()?.matches ? 'dark' : 'light';
+  // For launch: default to light. System-preference auto-detect is disabled —
+  // anything that isn't an explicit 'dark' selection resolves to light. Restore
+  // by uncommenting the line below if the OS-watching behaviour is needed.
+  // return mql()?.matches ? 'dark' : 'light';
+  return 'light';
 };
 
 const setMetaThemeColor = (effective) => {
@@ -46,10 +49,12 @@ export const subscribeSystemTheme = (callback) => {
 };
 
 // Eagerly-read initial mode, used to set up the DOM before React mounts.
+// Default is now 'light' — auto-detecting the OS preference is disabled.
+// Users can still pick 'dark' explicitly via the in-app ThemeToggle.
 export const readInitialTheme = () => {
   try {
     const saved = localStorage.getItem('animall_theme');
-    if (THEME_MODES.includes(saved)) return saved;
+    if (saved === 'dark' || saved === 'light') return saved;
   } catch { /* localStorage blocked */ }
-  return 'system';
+  return 'light';
 };

@@ -423,7 +423,7 @@ const mr = {
   price_label: 'किंमत (₹)',
   location_label: 'स्थान',
   location_helper: 'खरेदीदार तुमचे जनावर इथे पाहतील',
-  lpd: 'लि/दिवस',
+  lpd: 'लिटर दूध रोज',
   category_other_animals: 'इतर जनावरे',
   filter_milk: 'दूध',
   filter_price: 'किंमत',

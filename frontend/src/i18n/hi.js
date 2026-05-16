@@ -423,7 +423,7 @@ const hi = {
   price_label: 'क़ीमत (₹)',
   location_label: 'स्थान',
   location_helper: 'खरीदार आपके पशु को यहाँ देखेंगे',
-  lpd: 'ली/दिन',
+  lpd: 'लीटर दूध रोज़',
   category_other_animals: 'अन्य पशु',
   filter_milk: 'दूध',
   filter_price: 'क़ीमत',

@@ -1,16 +1,17 @@
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import useLanguage from '@/hooks/useLanguage';
 import { setTheme } from '@/store/slices/uiSlice';
 
+// 'System' option removed for launch — auto-detecting the OS preference is
+// disabled (see utils/theme.js). The toggle is now just Light / Dark.
 const OPTIONS = [
-  { value: 'light',  icon: Sun,     labelKey: 'theme_light' },
-  { value: 'system', icon: Monitor, labelKey: 'theme_system' },
-  { value: 'dark',   icon: Moon,    labelKey: 'theme_dark' },
+  { value: 'light', icon: Sun,  labelKey: 'theme_light' },
+  { value: 'dark',  icon: Moon, labelKey: 'theme_dark'  },
 ];
 
-// 3-way segmented control: Light · System · Dark.
+// 2-way segmented control: Light · Dark.
 export default function ThemeToggle({ variant = 'light', className = '' }) {
   const { tr } = useLanguage();
   const dispatch = useDispatch();

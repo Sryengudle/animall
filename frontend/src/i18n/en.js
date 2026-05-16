@@ -431,7 +431,7 @@ const en = {
   price_label: 'Price (₹)',
   location_label: 'Location',
   location_helper: 'Buyers will see your animal at this location',
-  lpd: 'L/day',
+  lpd: 'litre milk daily',
   category_other_animals: 'Other Animals',
   filter_milk: 'Milk',
   filter_price: 'Price',
