@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const webpush = require('web-push');
 const connectDB = require('./config/db');
 
 const app = express();
@@ -10,12 +11,22 @@ const app = express();
 // Connect MongoDB
 connectDB();
 
+// Add this line BEFORE applying your rate-limit middleware:
+app.set('trust proxy', 1); 
+
 // Rate limiting - protect OTP endpoint from abuse
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5,
   message: { message: 'Too many OTP requests, try after 15 minutes' },
 });
+
+// Configure your VAPID details (Generate these once using web-push generate-vapid-keys)
+webpush.setVapidDetails(
+  'mailto:hitendrapatil30@gmail.com', // Contact email or URL
+  process.env.PUBLIC_VAPID,
+  process.env.PRIVATE_VAPID
+);
 
 // Middleware
 app.use(cors({
@@ -32,6 +43,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth/send-otp', otpLimiter); // Rate limit OTP
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/animals', require('./routes/animals'));
+app.use('/api/subscribe', require('./routes/subscribe'));
 
 // Health check
 app.get('/api/health', (req, res) => {

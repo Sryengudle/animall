@@ -13,6 +13,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "public/custom-worker.js"],
   "exclude": ["node_modules", "dist"]
 }
