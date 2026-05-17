@@ -187,11 +187,13 @@ router.post('/', protect, upload.array('images', 5), async (req, res) => {
     const animalName = animal.breed ? `${animal.breed} ${animal.type}` : animal.type;
     const addedBy = animal.sellerName || 'A seller';
 
-
+  const template = `हे बघा, ${addedBy} यांच्याकडे एक उत्कृष्ट ${animalName} विक्रीसाठी आली आहे. त्वरित माहिती मिळवण्यासाठी येथे क्लिक करा!`;
   // 2. Format the push broadcast payload
   const notificationPayload = JSON.stringify({
-    title: '🐾 New Animal Alert!',
-    body: `${addedBy} just added a new animal named ${animalName}!`,
+    title: '🐄 Animal Alert!',
+    // body: `${addedBy} just added a new animal named ${animalName}!`,
+    body: template,
+    image: animal.images?.[0] || '', // Include the first image as a thumbnail if available
     url: '/buy' // Page URL where users can see the animal
   });
 

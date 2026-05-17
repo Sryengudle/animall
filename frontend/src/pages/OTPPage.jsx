@@ -77,7 +77,8 @@ export default function OTPPage() {
     const result = await dispatch(verifyOTP({ phone: pendingPhone, otp }));
     if (verifyOTP.fulfilled.match(result)) {
       toast.success(tr('login_success'));
-      setTimeout(() => navigate('/'), 600);
+      // setTimeout(() => navigate('/'), 600);
+      navigate('/')
     } else {
       setIsVerifying(false);
       toast.error(tr('invalid_otp'));
