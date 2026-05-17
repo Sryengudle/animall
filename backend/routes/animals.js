@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const webpush = require('web-push');
 const Animal = require('../models/Animal');
 const Report = require('../models/Report');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { getSubscriptions, removeSubscription } = require('../services/pushSubscriptions');
+
 
 // `isNegotiable` arrives from FormData as a string ("true"/"false") — coerce.
 const parseBool = (v, fallback) => {
@@ -174,7 +177,43 @@ router.post('/', protect, upload.array('images', 5), async (req, res) => {
       sellerName: req.user.name || '',
     });
 
+    // push notifications are sent asynchronously, so we can respond to the client immediately without waiting for them to complete
+    // res.status(201).json(animal);
+
+    // Broadcast a push notification to all active browsers about the new animal listing
+    // TODO:: move this broadcast logic to a background job/worker if it grows more complex or we want to guarantee delivery (currently if the server process crashes during the broadcast, some notifications may be lost)
+    // use socket.io or a message queue if you want real-time delivery and/or to scale beyond a single server instance
+    // create msg something like: `${animal.type} for sale at ${animal.price} added in ${animal.location}` and include a URL to the listing or homepage
+    const animalName = animal.breed ? `${animal.breed} ${animal.type}` : animal.type;
+    const addedBy = animal.sellerName || 'A seller';
+
+
+  // 2. Format the push broadcast payload
+  const notificationPayload = JSON.stringify({
+    title: '🐾 New Animal Alert!',
+    body: `${addedBy} just added a new animal named ${animalName}!`,
+    url: '/buy' // Page URL where users can see the animal
+  });
+
+  // 3. Broadcast to all active browsers currently saved in memory
+  const activeSubscriptions = getSubscriptions();
+  const pushPromises = activeSubscriptions.map(sub => {
+    return webpush.sendNotification(sub, notificationPayload)
+      .catch(err => {
+        // If browser endpoint expired or user revoked access (410/404), remove them
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          removeSubscription(sub.endpoint);
+        }
+        console.error('Failed to send notification:', err.message || err);
+      });
+  });
+
+  Promise.all(pushPromises).catch(err => {
+    console.error('Broadcast error encountered', err);
+  });
+
     res.status(201).json(animal);
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

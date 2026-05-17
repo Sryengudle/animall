@@ -40,8 +40,13 @@ export default defineConfig(({ command }) => ({
         ],
       },
       workbox: {
+        importScripts: ['/custom-worker.js'],
         // Cache all static assets
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // 🔥 ADD THIS CONFIG LAYER:
+        // This stops the PWA Service Worker from intercepting API calls
+        // navigateFallbackDenylist: [/^\/api/], 
+
         runtimeCaching: [
           {
             // Cache API animal listings (stale-while-revalidate for freshness + speed)
