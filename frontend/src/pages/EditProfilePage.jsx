@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, MapPin, Info, Phone, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -66,8 +66,15 @@ function SelectField({ label, value, onChange, options, placeholder, required })
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useDispatch();
   const { tr, lang } = useLanguage();
+
+  // Allow callers (e.g. the sell-profile-gate) to deep-link here and have us
+  // bounce back to them on save instead of the default /profile destination.
+  // Only relative paths are honoured to avoid open-redirect surface.
+  const rawReturn = searchParams.get('return');
+  const returnTo = rawReturn && rawReturn.startsWith('/') ? rawReturn : '/profile';
   const { user } = useSelector((s) => s.auth);
   const photoRef = useRef(null);
   const [locationSheetOpen, setLocationSheetOpen] = useState(false);
@@ -133,7 +140,7 @@ export default function EditProfilePage() {
 
       if (form.language !== lang) dispatch(setLang(form.language));
       toast.success(tr('done'));
-      navigate('/profile');
+      navigate(returnTo);
     } catch (err) {
       toast.error(typeof err === 'string' ? err : tr('error_generic'));
     } finally {

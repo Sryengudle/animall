@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap');
+
+/* ===========================================================================
+   Theme tokens — Earth & Emerald
+   Defined OUTSIDE @layer base so the custom-property cascade is unambiguous.
+   Values are space-separated RGB triplets so Tailwind's <alpha-value> modifier
+   works (e.g. bg-primary/40, text-surface-500/80).
+   =========================================================================== */
+
+:root {
+  /* Primary — emerald (inverts in dark mode) */
+  --color-primary-50:  236 253 245;
+  --color-primary-100: 209 250 229;
+  --color-primary-200: 167 243 208;
+  --color-primary-300: 110 231 183;
+  --color-primary-400:  52 211 153;
+  --color-primary-500:  16 185 129;
+  --color-primary-600:   5 150 105;
+  --color-primary-700:   4 120  87;
+  --color-primary-800:   6  95  70;
+  --color-primary-900:   6  78  59;
+  --color-primary-950:   2  44  34;
+
+  /* Accent — warm amber (inverts in dark mode) */
+  --color-accent-50:  255 251 235;
+  --color-accent-100: 254 243 199;
+  --color-accent-200: 253 230 138;
+  --color-accent-300: 252 211  77;
+  --color-accent-400: 251 191  36;
+  --color-accent-500: 245 158  11;
+  --color-accent-600: 217 119   6;
+  --color-accent-700: 180  83   9;
+  --color-accent-800: 146  64  14;
+  --color-accent-900: 120  53  15;
+
+  /* Surface — warm sage neutrals. Light mode is a clear, visible cream-green
+     so the page never feels pure-white. */
+  --color-surface-0:   255 255 255;  /* card */
+  --color-surface-50:  235 243 235;  /* page bg — clearly visible warm sage */
+  --color-surface-100: 226 235 226;
+  --color-surface-200: 213 224 213;  /* borders */
+  --color-surface-300: 192 204 192;
+  --color-surface-400: 153 162 153;
+  --color-surface-500: 109 118 109;
+  --color-surface-600:  80  88  80;
+  --color-surface-700:  62  68  62;
+  --color-surface-800:  39  44  39;
+  --color-surface-900:  24  28  24;
+  --color-surface-950:  12  15  12;
+
+  /* Semantic */
+  --color-success-500: 16 185 129;
+  --color-success-600:  5 150 105;
+  --color-warning-500: 245 158  11;
+  --color-warning-600: 217 119   6;
+  --color-danger-500:  239  68  68;
+  --color-danger-600:  220  38  38;
+  --color-info-500:     59 130 246;
+  --color-info-600:     37  99 235;
+
+  /* Convenience aliases */
+  --color-text:        var(--color-surface-900);
+  --color-text-muted:  var(--color-surface-500);
+  --color-bg:          var(--color-surface-50);
+  --color-bg-elevated: var(--color-surface-0);
+  --color-border:      var(--color-surface-200);
+
+  /* Brand scale — constant across light/dark. Use for hero gradients, header,
+     CTAs where the emerald identity should persist regardless of mode. */
+  --color-brand-50:  236 253 245;
+  --color-brand-100: 209 250 229;
+  --color-brand-300: 110 231 183;
+  --color-brand-500:  16 185 129;
+  --color-brand-600:   5 150 105;
+  --color-brand-700:   4 120  87;
+  --color-brand-800:   6  95  70;
+  --color-brand-900:   6  78  59;
+  --color-brand-950:   2  44  34;
+
+  --hex-primary: #047857;
+  --hex-danger:  #ef4444;
+
+  color-scheme: light;
+}
+
+.dark {
+  /* Primary brightens on dark surfaces so it stays legible as text/icon */
+  --color-primary-50:    2  44  34;
+  --color-primary-100:   6  78  59;
+  --color-primary-200:   6  95  70;
+  --color-primary-300:   4 120  87;
+  --color-primary-400:   5 150 105;
+  --color-primary-500:  16 185 129;
+  --color-primary-600:  52 211 153;
+  --color-primary-700: 110 231 183;
+  --color-primary-800: 167 243 208;
+  --color-primary-900: 209 250 229;
+  --color-primary-950: 236 253 245;
+
+  --color-accent-50:  120  53  15;
+  --color-accent-100: 146  64  14;
+  --color-accent-200: 180  83   9;
+  --color-accent-300: 217 119   6;
+  --color-accent-400: 245 158  11;
+  --color-accent-500: 251 191  36;
+  --color-accent-600: 252 211  77;
+  --color-accent-700: 253 230 138;
+  --color-accent-800: 254 243 199;
+  --color-accent-900: 255 251 235;
+
+  /* Page is the darkest; cards lift several levels for clear separation. */
+  --color-surface-0:    33  44  37;
+  --color-surface-50:   14  18  15;
+  --color-surface-100:  33  44  37;
+  --color-surface-200:  54  68  56;
+  --color-surface-300:  78  94  80;
+  --color-surface-400: 130 145 134;
+  --color-surface-500: 175 187 178;
+  --color-surface-600: 211 219 213;
+  --color-surface-700: 229 234 230;
+  --color-surface-800: 240 244 240;
+  --color-surface-900: 248 252 248;
+  --color-surface-950: 255 255 255;
+
+  --color-success-500: 52 211 153;
+  --color-success-600: 16 185 129;
+  --color-warning-500: 251 191  36;
+  --color-warning-600: 245 158  11;
+  --color-danger-500:  248 113 113;
+  --color-danger-600:  239  68  68;
+  --color-info-500:    96 165 250;
+  --color-info-600:    59 130 246;
+
+  --hex-primary: #10b981;
+  --hex-danger:  #f87171;
+
+  color-scheme: dark;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    border-color: rgb(var(--color-border));
+  }
+
+  html {
+    font-family: 'Noto Sans Devanagari', 'Noto Sans', sans-serif;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Body uses a subtle 3-stop gradient so every page has visible warmth even
+     before per-page backgrounds kick in. */
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: rgb(var(--color-bg));
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--color-brand-50)) 0%,
+      rgb(var(--color-bg))      35%,
+      rgb(var(--color-accent-50) / 0.55) 100%
+    );
+    background-attachment: fixed;
+    color: rgb(var(--color-text));
+    -webkit-text-size-adjust: 100%;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  .dark body {
+    background-image: linear-gradient(
+      180deg,
+      rgb(var(--color-surface-50)) 0%,
+      rgb(var(--color-surface-50)) 60%,
+      rgb(6 78 59 / 0.4) 100%
+    );
+  }
+
+  button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type='number'] { -moz-appearance: textfield; }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  .text-gradient-primary {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--color-brand-700)) 0%,
+      rgb(var(--color-brand-500)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass {
+    background: rgb(var(--color-surface-0) / 0.78);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+  }
+}

@@ -3,12 +3,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   ArrowLeft, Share2, Heart, MapPin, Phone, ChevronLeft, ChevronRight, Play, Flag,
-  Droplets, Calendar, Tag, Repeat,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import useLanguage from '@/hooks/useLanguage';
 import { Avatar } from '@/components/ui';
+import AnimalStatBox from '@/components/common/AnimalStatBox';
 import ReportDialog from '@/components/common/ReportDialog';
 import { DEMO_ANIMALS } from '@/constants/demoAnimals';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '@/utils/wishlist';
@@ -350,36 +350,30 @@ export default function ListingDetailPage() {
               );
             })()}
 
-            {/* Stats — icon-led chips, same visual language as ListingCard.
-                Each chip is small, colored by category, and skips its value if
-                empty. Breed is hidden when the title already shows it. */}
+            {/* Stats — same compact label/value boxes as the listing-card
+                preview so the two surfaces feel like one design. We show
+                whichever of {lactation, milk capacity, age} are present.
+                Breed sits in the title and is intentionally not repeated. */}
             {(() => {
-              const stats = [];
               const lactationVal = animal.lactationLabel
                 ? (String(animal.lactationLabel).match(/^\d+/)?.[0] || animal.lactationLabel)
                 : (animal.calving ? tr(`calving_${animal.calving}`) || animal.calving : '');
-              if (lactationVal) stats.push({ icon: Repeat, value: lactationVal, accent: 'amber' });
-              if (animal.milkPerDay) stats.push({ icon: Droplets, value: `${animal.milkPerDay} ${tr('lpd')}`, accent: 'blue' });
-              if (animal.breed && !titleText?.toLowerCase().includes(breedLabel.toLowerCase())) {
-                stats.push({ icon: Tag, value: breedLabel, accent: 'brand' });
-              }
-              if (animal.age) stats.push({ icon: Calendar, value: `${animal.age} ${tr(animal.ageUnit || 'years')}`, accent: 'brand' });
-              if (stats.length === 0) return null;
-              const palette = {
-                brand: 'bg-brand-50 text-brand-800 ring-brand-200/60',
-                amber: 'bg-accent-50 text-accent-800 ring-accent-200/60',
-                blue:  'bg-blue-50 text-blue-700 ring-blue-200/60',
-              };
+              const milkVal = animal.milkPerDay
+                ? `${animal.milkPerDay} ${tr('lpd_short')}`
+                : null;
+              const ageVal = animal.age
+                ? `${animal.age} ${tr(animal.ageUnit || 'years')}`
+                : null;
+              const items = [
+                lactationVal && { label: tr('lactation_label'), value: lactationVal },
+                milkVal && { label: tr('milk_capacity_label'), value: milkVal },
+                ageVal && { label: tr('age'), value: ageVal },
+              ].filter(Boolean);
+              if (items.length === 0) return null;
               return (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {stats.map((s, i) => (
-                    <span
-                      key={i}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ring-1 ${palette[s.accent]}`}
-                    >
-                      <s.icon size={12} strokeWidth={2.4} />
-                      <span className="text-caption !font-bold">{s.value}</span>
-                    </span>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {items.map((it, i) => (
+                    <AnimalStatBox key={i} label={it.label} value={it.value} />
                   ))}
                 </div>
               );

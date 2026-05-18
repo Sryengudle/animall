@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MapPin, Phone, Heart, Share2, Play, ChevronLeft, ChevronRight,
-  Droplets, Tag, Repeat,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useLanguage from '@/hooks/useLanguage';
 import Avatar from '@/components/ui/Avatar';
+import AnimalStatBox from '@/components/common/AnimalStatBox';
 import { isWishlisted, toggleWishlist, subscribeWishlist } from '@/utils/wishlist';
 import { shareOrCopy } from '@/utils/share';
 import { mapsUrl } from '@/utils/mapsUrl';
@@ -394,17 +394,19 @@ export default function ListingCard({
         </div>
 
         {/* Row 2: location — tap to open Google Maps. stopPropagation so it
-            doesn't trigger the surrounding card-level <Link>. */}
+            doesn't trigger the surrounding card-level <Link>. The `underline`
+            on the link makes the clickable affordance obvious to farmers who
+            wouldn't otherwise recognize the hover-color cue. */}
         {location && (() => {
           const url = mapsUrl({ location });
+          const distanceSuffix = distanceKm != null
+            ? ` (${tr('approx_distance_prefix')} ${distanceKm} km)`
+            : '';
           const inner = (
             <>
               <MapPin size={12} className="mt-[2px] text-surface-400 shrink-0" />
-              <span className="min-w-0 truncate">
-                {location}
-                {distanceKm != null && (
-                  <span className="text-surface-400"> · {distanceKm} km</span>
-                )}
+              <span className="min-w-0 truncate underline underline-offset-2 decoration-surface-300">
+                {location}{distanceSuffix}
               </span>
             </>
           );
@@ -423,39 +425,23 @@ export default function ListingCard({
           );
         })()}
 
-        {/* Row 3: stats as icon-led chips. Each chip has a small lucide icon
-            that hints at the field's meaning (no need to read the label).
-            Skips breed if it's already in the title to avoid duplication. */}
-        {(() => {
-          const stats = [];
-          if (lactationLabel) stats.push({ icon: Repeat, value: lactationLabel, accent: 'amber' });
-          if (milkPerDay) stats.push({ icon: Droplets, value: `${milkPerDay} ${tr('lpd')}`, accent: 'blue' });
-          if (breedLabel && !title?.toLowerCase().includes(breedLabel.toLowerCase())) {
-            stats.push({ icon: Tag, value: breedLabel, accent: 'brand' });
-          }
-          // Age intentionally hidden on the listing card — kept on the detail
-          // page where buyers have time to read full specs.
-
-          if (stats.length === 0) return null;
-          const palette = {
-            brand: 'bg-brand-50 text-brand-800 ring-brand-200/60',
-            amber: 'bg-accent-50 text-accent-800 ring-accent-200/60',
-            blue:  'bg-blue-50 text-blue-700 ring-blue-200/60',
-          };
-          return (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {stats.map((s, i) => (
-                <span
-                  key={i}
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ring-1 ${palette[s.accent]}`}
-                >
-                  <s.icon size={11} strokeWidth={2.4} />
-                  <span className="text-caption !font-bold">{s.value}</span>
-                </span>
-              ))}
-            </div>
-          );
-        })()}
+        {/* Row 3: stats — compact label/value boxes (Lactation + Milk Capacity)
+            using the shared AnimalStatBox so the listing-card preview and the
+            detail page render the same component. Breed sits inside the title
+            (e.g. "MURRAH Buffalo") and is intentionally not re-rendered here. */}
+        {(lactationLabel || milkPerDay) && (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {lactationLabel && (
+              <AnimalStatBox label={tr('lactation_label')} value={lactationLabel} />
+            )}
+            {milkPerDay && (
+              <AnimalStatBox
+                label={tr('milk_capacity_label')}
+                value={`${milkPerDay} ${tr('lpd_short')}`}
+              />
+            )}
+          </div>
+        )}
 
         {/* Optional description preview — 2-line clamp */}
         {description && (

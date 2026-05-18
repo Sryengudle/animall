@@ -6,7 +6,6 @@ import toast from 'react-hot-toast';
 
 import { verifyOTP, sendOTP } from '@/store/slices/authSlice';
 import useLanguage from '@/hooks/useLanguage';
-import AuthLoadingScreen from '@/components/common/AuthLoadingScreen';
 import LanguageSwitcher from '@/components/common/LanguageSwitcher';
 import { Button } from '@/components/ui';
 import { formatPhoneDisplay } from '@/utils/formatters';
@@ -20,7 +19,6 @@ export default function OTPPage() {
   const { pendingPhone, demoOtp, loading } = useSelector((s) => s.auth);
 
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [resendIn, setResendIn] = useState(RESEND_SECONDS);
   const inputsRef = useRef([]);
 
@@ -73,14 +71,17 @@ export default function OTPPage() {
       toast.error(tr('invalid_otp_length'));
       return;
     }
-    setIsVerifying(true);
+    // The button below already shows a spinner via Redux `loading`. Don't
+    // short-circuit the whole page to AuthLoadingScreen — that caused a
+    // flicker where the OTP screen disappeared before the route changed,
+    // and the verify-button loader was never visible.
     const result = await dispatch(verifyOTP({ phone: pendingPhone, otp }));
     if (verifyOTP.fulfilled.match(result)) {
       toast.success(tr('login_success'));
-      // setTimeout(() => navigate('/'), 600);
-      navigate('/')
+      // `replace: true` so the OTP page isn't in history — back button
+      // shouldn't bring an already-logged-in user back to OTP entry.
+      navigate('/buy', { replace: true });
     } else {
-      setIsVerifying(false);
       toast.error(tr('invalid_otp'));
       setDigits(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
@@ -93,8 +94,6 @@ export default function OTPPage() {
     setResendIn(RESEND_SECONDS);
     toast.success(tr('otp_sent'));
   };
-
-  if (isVerifying) return <AuthLoadingScreen />;
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-primary-100 via-accent-50 to-accent-100">
@@ -109,16 +108,25 @@ export default function OTPPage() {
         <LanguageSwitcher />
       </header>
 
-      <div className="flex-1 flex items-end justify-center px-4 pt-4">
+      {/* Hero photograph — mirrors LoginPage so OTP feels like the same screen.
+          Uses the same bundled asset + soft fade-to-card overlay. */}
+      <div className="flex-1 relative overflow-hidden">
         <motion.img
-          src="/images/farmer-illustration.png"
+          src="/images/login-hero.jpg"
           alt=""
-          className="w-full max-w-md object-contain"
-          style={{ aspectRatio: '4/3' }}
-          initial={{ opacity: 0, scale: 0.96 }}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.7 }}
+          loading="eager"
           onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(15,80,55,0.10) 0%, rgba(15,80,55,0) 30%, rgba(250,249,245,0.0) 70%, rgba(250,249,245,0.92) 95%, rgba(250,249,245,1) 100%)',
+          }}
         />
       </div>
 

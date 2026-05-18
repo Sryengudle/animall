@@ -82,4 +82,15 @@ export default defineConfig(({ command }) => ({
     },
     allowedHosts: ['my-unique-demo-123.loca.lt']
   },
+  test: {
+    // Vitest runs in jsdom so RTL can mount components against a fake DOM.
+    // setupFiles wires up `@testing-library/jest-dom` matchers (e.g.
+    // `toBeInTheDocument`) globally for every test file.
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    css: false,
+    // Don't try to test the dist folder or PWA build artifacts.
+    exclude: ['node_modules', 'dist'],
+  },
 }));

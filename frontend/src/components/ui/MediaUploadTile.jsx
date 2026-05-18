@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Video, X } from 'lucide-react';
+import useLanguage from '@/hooks/useLanguage';
 
 // Dashed-border media upload tile used in the Sell form for video / udder photo / milking video.
 // Three together fit on one mobile screen as a 2-up + 1-full layout (set `fullWidth` for the third).
@@ -21,6 +22,7 @@ export default function MediaUploadTile({
   onError,
   className = '',
 }) {
+  const { tr } = useLanguage();
   const ref = useRef(null);
   const accept = kind === 'video' ? 'video/*' : 'image/*';
   const Icon = icon || (kind === 'video' ? Video : Camera);
@@ -30,11 +32,16 @@ export default function MediaUploadTile({
   const hasFile = Boolean(file);
   const hasExisting = !hasFile && Boolean(existingUrl);
 
+  // Three CTA states — all routed through i18n so the Marathi/Hindi sellers
+  // don't see English buttons on an otherwise-translated page. The post-pick
+  // "Replace" copy reuses the freshly-added mu_replace key; the empty-state
+  // pick uses the existing select_photo / select_video keys (already in all
+  // three locales).
   const ctaLabel = hasFile || hasExisting
-    ? 'Replace'
+    ? tr('mu_replace')
     : kind === 'video'
-      ? 'Select video'
-      : 'Select photo';
+      ? tr('select_video')
+      : tr('select_photo');
 
   // Create an object-URL preview for the selected file. We revoke it whenever
   // `file` changes (or the tile unmounts) to avoid leaking blob URLs.
@@ -48,14 +55,17 @@ export default function MediaUploadTile({
 
   // Resolve which URL to show in the thumbnail.
   const thumbUrl = hasFile ? previewUrl : (hasExisting ? existingUrl : null);
-  const thumbLabel = hasFile ? file.name : (hasExisting ? 'Current ' + (kind === 'video' ? 'video' : 'photo') : '');
+  const thumbLabel = hasFile
+    ? file.name
+    : (hasExisting ? tr(kind === 'video' ? 'mu_current_video' : 'mu_current_photo') : '');
 
   function pick(e) {
     const f = e.target.files?.[0];
     if (!f) return;
     const maxBytes = MAX_MB[kind] * 1024 * 1024;
     if (f.size > maxBytes) {
-      onError?.(`File too large. Max ${MAX_MB[kind]} MB.`);
+      // tr('mu_file_too_large', { mb }) → "File too large. Max {mb} MB."
+      onError?.(tr('mu_file_too_large', { mb: MAX_MB[kind] }));
       e.target.value = '';
       return;
     }
@@ -114,7 +124,7 @@ export default function MediaUploadTile({
             <button
               type="button"
               onClick={clearFile}
-              aria-label="Remove"
+              aria-label={tr('mu_remove')}
               className="absolute -top-2 -right-2 grid place-items-center h-7 w-7 rounded-full bg-surface-900 text-white shadow-md hover:bg-surface-700 active:scale-95 transition-all"
             >
               <X size={14} />

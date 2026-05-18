@@ -63,6 +63,10 @@ export default function App() {
             <Route path="/"             element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/buy"          element={<ProtectedRoute><BuyPage /></ProtectedRoute>} />
             <Route path="/buy/:id"      element={<ProtectedRoute><ListingDetail /></ProtectedRoute>} />
+            {/* Legacy alias for push-notification URLs sent as /animal/:id by the
+                backend. New code should emit /buy/:id; this keeps existing
+                notifications resolving instead of bouncing to the catch-all. */}
+            <Route path="/animal/:id"   element={<ProtectedRoute><ListingDetail /></ProtectedRoute>} />
             <Route path="/sell"         element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
             <Route path="/my-listings"  element={<ProtectedRoute><MyListingsPage /></ProtectedRoute>} />
             <Route path="/profile"      element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

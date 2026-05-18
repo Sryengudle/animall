@@ -102,12 +102,18 @@ export default {
         'micro-caps': ['10px', { lineHeight: '12px', letterSpacing: '0.08em', fontWeight: '700' }],
       },
       borderRadius: {
-        // Standard Tailwind scale — `rounded-2xl` is 1rem (16px), matching the
-        // app's surface-card convention. Custom overrides were causing the
-        // whole app to render at 1.5rem instead of 1rem.
-        xl: '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        // Unified card / section radius at 0.5rem (8px). Per the design
+        // direction on 2026-05-18, every container in the app — listing
+        // card, filter card, modal, bottom-sheet top, photo upload tile,
+        // gate card — uses the same corner curve so the UI reads as one
+        // family. `rounded-md` (0.375rem) and `rounded-lg` (0.5rem) are
+        // unchanged. `rounded-full` (pills / avatars) is unaffected.
+        // Keeping the three named sizes pointed at the same value means
+        // every existing `rounded-xl|2xl|3xl|t-3xl|...` class snaps to
+        // the new system without per-file edits.
+        xl: '0.5rem',
+        '2xl': '0.5rem',
+        '3xl': '0.5rem',
       },
       boxShadow: {
         // Cards get a layered shadow that works on light AND dark backgrounds.

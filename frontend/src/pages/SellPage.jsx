@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import Header from '@/components/common/Header';
 import BottomNav from '@/components/common/BottomNav';
 import LocationSheet from '@/components/common/LocationSheet';
+import ProfileIncompleteCard from '@/components/common/ProfileIncompleteCard';
 import CowIcon from '@/components/icons/CowIcon';
 import {
   ChipSelect,
@@ -17,6 +18,7 @@ import {
 import useLanguage from '@/hooks/useLanguage';
 import { addAnimal, updateAnimal, fetchMyListings } from '@/store/slices/animalsSlice';
 import { EMPTY_ADDRESS, formatAddress, hasAddress } from '@/utils/addressFormat';
+import { getMissingSellerFields } from '@/utils/profileCompletion';
 
 // One page, two modes:
 //   • Create: /sell  → dispatches addAnimal
@@ -174,6 +176,20 @@ export default function SellPage() {
   const [locOpen, setLocOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // True when the location field currently mirrors the seller's profile
+  // address (pre-filled). Flipped off when they pick a different address or
+  // type into the input — that surfaces the "From your profile" hint only
+  // while it's accurate.
+  const [usingProfileAddr, setUsingProfileAddr] = useState(false);
+
+  // Profile-completeness gate. We compute the missing fields once per render
+  // and — for new listings — render a "complete your profile" card instead
+  // of the form when anything's missing. Edit mode bypasses the gate so the
+  // user can still fix typos on an existing listing whose author profile has
+  // drifted.
+  const missingProfileFields = !isEditMode ? getMissingSellerFields(user) : [];
+  const profileBlocked = missingProfileFields.length > 0;
+
   // In edit mode, fetch myListings if not loaded; prefill form once available.
   useEffect(() => {
     if (isEditMode && myListings.length === 0) dispatch(fetchMyListings());
@@ -186,6 +202,7 @@ export default function SellPage() {
     if (hasAddress(user?.address) && !location) {
       setAddress({ ...EMPTY_ADDRESS, ...user.address });
       setLocation(formatAddress(user.address));
+      setUsingProfileAddr(true);
     }
   }, [isEditMode, user, location]);
 
@@ -219,9 +236,11 @@ export default function SellPage() {
   // Validation: in create mode require a main photo; in edit mode it's optional
   // (existing media is preserved), but if the seller has cleared their existing
   // main photo without picking a new one, block submit.
+  // Age is intentionally NOT required — many sellers don't know the exact
+  // age, and forcing them to pick a number leads to bad data.
   const hasMainMedia = mainFile || existingMain;
   const canPost = !!(
-    animal && breed && price && location && age
+    animal && breed && price && location
     && (!showMilk || (lactation && milk))
     && (isEditMode ? hasMainMedia : mainFile)
   );
@@ -229,11 +248,16 @@ export default function SellPage() {
   function handleLocation(addr) {
     setAddress({ ...EMPTY_ADDRESS, ...addr });
     setLocation(formatAddress(addr));
+    setUsingProfileAddr(false);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (!canPost || submitting) return;
+    // The render-time gate (ProfileIncompleteCard) already short-circuits
+    // the form in create mode when the profile is incomplete, so by the
+    // time we reach handleSubmit the user is guaranteed reachable. Edit
+    // mode is allowed through regardless.
     setSubmitting(true);
 
     const fd = new FormData();
@@ -277,8 +301,23 @@ export default function SellPage() {
   const pageTitle = isEditMode ? tr('edit_listing') : tr('sell_livestock');
   const submitLabel = isEditMode ? tr('update_button') : tr('post_button');
 
+  // Profile-incomplete gate (create mode only). Swap the entire form for the
+  // ProfileIncompleteCard so the seller can't compose a listing that buyers
+  // won't be able to act on. EditProfilePage honours ?return=/sell and lands
+  // them back here once they've added the missing fields — at which point
+  // this branch falls through and they see the real form.
+  if (profileBlocked) {
+    return (
+      <div className="min-h-screen bg-surface-50 pb-24">
+        <Header />
+        <ProfileIncompleteCard missingFields={missingProfileFields} />
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-surface-50 pb-44">
+    <div className="min-h-screen bg-surface-50 pb-24">
       {isEditMode ? <Header title={pageTitle} showBack /> : <Header />}
 
       <main className="mx-auto max-w-xl px-4 pt-5">
@@ -338,9 +377,11 @@ export default function SellPage() {
             />
           </SectionCard>
 
-          {/* Age section — number + unit (years / months) toggle. */}
+          {/* Age section — number + unit (years / months) toggle.
+              Optional: many sellers don't know the exact age, and forcing
+              a number was leading to bad data. Submit works without it. */}
           <SectionCard>
-            <SectionHeader icon={Calendar} label={tr('age')} required />
+            <SectionHeader icon={Calendar} label={tr('age')} />
             <div className="flex items-stretch gap-2">
               <div className="flex-1 flex items-stretch rounded-2xl bg-surface-0 border border-surface-200 overflow-hidden focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-100 transition-colors">
                 <input
@@ -508,7 +549,10 @@ export default function SellPage() {
               <input
                 type="text"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  if (usingProfileAddr) setUsingProfileAddr(false);
+                }}
                 placeholder={tr('tell_your_location')}
                 className="w-full pl-4 pr-24 py-3 rounded-2xl bg-surface-0 border border-surface-200 text-surface-900 placeholder:text-surface-500 text-body-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 transition-colors"
               />
@@ -520,24 +564,33 @@ export default function SellPage() {
                 {tr('loc_change')}
               </button>
             </div>
+            {usingProfileAddr && (
+              <p className="mt-2 text-[11px] text-surface-500 flex items-center gap-1.5">
+                <span aria-hidden="true">👤</span>
+                {tr('loc_from_profile')}
+              </p>
+            )}
           </SectionCard>
+
+          {/* Post button — kept inline directly under the last section instead
+              of a `fixed bottom` overlay. On short screens the floating
+              variant created a big empty gap between the form and the button
+              ("button going really down"). Inline keeps the action tied to
+              the form; BottomNav clearance below comes from the wrapper's
+              `pb-24`. */}
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!canPost || submitting}
+            className={`mt-4 w-full py-3.5 rounded-2xl font-bold text-body active:scale-95 transition-all
+              ${canPost && !submitting
+                ? 'bg-brand-700 text-white shadow-button hover:bg-brand-800'
+                : 'bg-surface-200 text-surface-500 cursor-not-allowed'}`}
+          >
+            {submitting ? tr('loading') : submitLabel}
+          </button>
         </form>
       </main>
-
-      {/* Sticky Post/Update button */}
-      <div className="fixed bottom-[60px] left-0 right-0 z-30 bg-surface-0/95 backdrop-blur-sm border-t border-surface-200 px-4 py-3">
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!canPost || submitting}
-          className={`w-full py-3.5 rounded-2xl font-bold text-body active:scale-95 transition-all
-            ${canPost && !submitting
-              ? 'bg-brand-700 text-white shadow-button hover:bg-brand-800'
-              : 'bg-surface-200 text-surface-500 cursor-not-allowed'}`}
-        >
-          {submitting ? tr('loading') : submitLabel}
-        </button>
-      </div>
 
       <BottomNav />
 

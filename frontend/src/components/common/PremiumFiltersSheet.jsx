@@ -40,12 +40,21 @@ const PRICE_OPTS = [
   { key: '1.5L+',  t: 'pfs_price_15Lp' },
 ];
 
+// Order: nearby first (smallest, friendly label), then explicit km in ascending
+// order, then "everywhere" as the catch-all. Matches the farmer-friendly
+// progression the team requested 2026-05-18.
+//
+// No subtitles on any option — single-line pills so all eight are the same
+// visual height. The "Walking distance" hint that used to sit on Nearby
+// caused the first pill to be taller than the rest, breaking the grid rhythm.
 const DISTANCE_OPTS = [
-  { key: 'nearby', t: 'pfs_dist_nearby_t', s: 'pfs_dist_nearby_s' },
+  { key: 'nearby', t: 'pfs_dist_nearby_t' },
+  { key: '5',      t: 'pfs_dist_5' },
+  { key: '10',     t: 'pfs_dist_10' },
+  { key: '15',     t: 'pfs_dist_15' },
+  { key: '20',     t: 'pfs_dist_20' },
   { key: '25',     t: 'pfs_dist_25' },
   { key: '50',     t: 'pfs_dist_50' },
-  { key: '100',    t: 'pfs_dist_100' },
-  { key: '200',    t: 'pfs_dist_200' },
   { key: 'any',    t: 'pfs_dist_any' },
 ];
 
@@ -181,49 +190,70 @@ export default function PremiumFiltersSheet({
       open={open}
       onClose={onClose}
       footer={
-        <div className="grid grid-cols-[auto_1fr] gap-2.5 items-stretch">
-          <Button
-            variant="secondary"
-            onClick={handleReset}
-            disabled={!dirty}
-            className="!px-5"
-          >
-            {tr('filter_reset')}
-          </Button>
-          <Button
-            onClick={handleApply}
-            className="!bg-brand-700 hover:!bg-brand-800 inline-flex items-center justify-center gap-2"
-          >
-            <span>{tr('filter_apply')}</span>
-            {dirty && (
-              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white/25 text-caption !font-extrabold">
-                {activeCount}
-              </span>
-            )}
-          </Button>
+        // Two-line footer matching the Pashu Mandi reference:
+        //   Row 1 — shield icon + "No additional filters" / "N filters active"
+        //   Row 2 — Reset + Apply side-by-side, Apply takes the rest of the row
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-caption text-surface-600">
+            <ShieldCheck
+              size={14}
+              strokeWidth={2.5}
+              className={dirty ? 'text-brand-700' : 'text-surface-400'}
+            />
+            <span className="!font-semibold">
+              {dirty
+                ? `${activeCount} ${tr('filters_active')}`
+                : tr('no_additional_filters')}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5 items-stretch">
+            <Button
+              variant="secondary"
+              onClick={handleReset}
+              disabled={!dirty}
+            >
+              {tr('filter_reset')}
+            </Button>
+            <Button
+              onClick={handleApply}
+              className="!bg-brand-700 hover:!bg-brand-800 inline-flex items-center justify-center gap-2"
+            >
+              <span>{tr('filter_apply')}</span>
+              {dirty && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-white/25 text-caption !font-extrabold">
+                  {activeCount}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       }
     >
-      <header className="-mt-1 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-h2 font-extrabold text-surface-900 flex items-center gap-2">
-            <span className="grid place-items-center h-7 w-7 rounded-lg bg-brand-100 text-brand-700">
-              <Sparkles size={16} />
-            </span>
-            {tr('premium_filters')}
-          </h2>
-          <p className="mt-1.5 text-caption text-surface-500">{tr('premium_filters_sub')}</p>
+      {/* Header — title + subtitle centered/left, status pill on its own row
+          below (matches the Pashu Mandi reference). Pulling the pill out of
+          the header line lets it breathe and reads as the "current scope"
+          summary rather than a hidden badge. */}
+      <header className="-mt-1">
+        <h2 className="text-h2 font-extrabold text-surface-900 flex items-center gap-2">
+          <span className="grid place-items-center h-7 w-7 rounded-lg bg-brand-100 text-brand-700">
+            <Sparkles size={16} />
+          </span>
+          {tr('premium_filters')}
+        </h2>
+        <p className="mt-1.5 text-caption text-surface-500">{tr('premium_filters_sub')}</p>
+        <div className="mt-3">
+          <span
+            className={`inline-flex items-center text-caption !font-bold rounded-full px-3 py-1.5 ring-1 transition-colors ${
+              dirty
+                ? 'bg-brand-50 text-brand-700 ring-brand-200'
+                : 'bg-surface-0 text-brand-700 ring-brand-200'
+            }`}
+          >
+            {dirty
+              ? `${activeCount} ${tr('filters_active')}`
+              : tr('filter_all_animals_showing')}
+          </span>
         </div>
-        <span
-          className={`shrink-0 inline-flex items-center gap-1 text-micro !font-bold rounded-md px-2 py-1 ring-1 ${
-            dirty
-              ? 'bg-brand-50 text-brand-700 ring-brand-200'
-              : 'bg-surface-100 text-surface-600 ring-surface-200'
-          }`}
-        >
-          <ShieldCheck size={11} strokeWidth={2.5} />
-          {dirty ? `${activeCount} ${tr('filter_apply')}` : tr('filter_all_animals_showing')}
-        </span>
       </header>
 
       <div className="mt-5 space-y-4 pb-2">

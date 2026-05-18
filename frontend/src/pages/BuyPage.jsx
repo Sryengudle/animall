@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Droplets, IndianRupee, MapPin } from 'lucide-react';
+import {
+  Droplets, IndianRupee, MapPin, SlidersHorizontal,
+  ArrowDown, ArrowUp,
+} from 'lucide-react';
 
 import Header from '@/components/common/Header';
 import BottomNav from '@/components/common/BottomNav';
@@ -43,8 +46,17 @@ const PRICE_RANGES = {
   '1.5L+':  [1_50_000, Infinity],
 };
 
+// Nearby is the smallest radius (≤3 km — walking-distance feel). Explicit
+// km options follow. `any` clears the cap.
 const DISTANCE_KM = {
-  'nearby': 25, '25': 25, '50': 50, '100': 100, '200': 200, 'any': Infinity,
+  'nearby': 3,
+  '5':  5,
+  '10': 10,
+  '15': 15,
+  '20': 20,
+  '25': 25,
+  '50': 50,
+  'any': Infinity,
 };
 
 const LACTATION_MATCH = {
@@ -77,11 +89,14 @@ function applyClientResiduals(list, f) {
     return true;
   });
 
-  // Geo-based sorts (server can't do these without coordinates)
+  // Sort. Server handles `low → priceAsc` via SORT_TO_BACKEND; everything
+  // else falls through to newest server-side and we re-sort here.
   if (f.sort === 'nearest') {
     arr = [...arr].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
   } else if (f.sort === 'farthest') {
     arr = [...arr].sort((a, b) => (b.distanceKm ?? -1) - (a.distanceKm ?? -1));
+  } else if (f.sort === 'high') {
+    arr = [...arr].sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
   }
   return arr;
 }
@@ -109,7 +124,8 @@ const PRICE_VALUE = {
   '80-99k': '₹80-99K', '1-1.5L': '₹1-1.5L', '1.5L+': '₹1.5L+',
 };
 const DISTANCE_VALUE = {
-  nearby: 'Nearby', '25': '25 km', '50': '50 km', '100': '100 km', '200': '200 km',
+  nearby: 'Nearby', '5': '5 km', '10': '10 km', '15': '15 km',
+  '20': '20 km', '25': '25 km', '50': '50 km',
 };
 
 export default function BuyPage() {
@@ -123,6 +139,28 @@ export default function BuyPage() {
   const [locOpen, setLocOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filtersFocus, setFiltersFocus] = useState(null);
+
+  // True when ANY non-default filter facet is active — drives the dot on the
+  // main filter icon. Cheaper UX than a count, and forgiving when the user
+  // sets multiple filters from the premium sheet.
+  const anyFilterActive = useMemo(
+    () => Object.keys(DEFAULT_FILTERS).some((k) => filters[k] !== DEFAULT_FILTERS[k]),
+    [filters],
+  );
+
+  // Quick-filter handlers — kept tiny and self-explanatory.
+  // Price pill cycles recent → low → high → recent so a single tap is enough
+  // for farmers; the icon below shows the current direction (↓ low, ↑ high).
+  function cyclePriceSort() {
+    setFilters((f) => {
+      const next = f.sort === 'low' ? 'high' : f.sort === 'high' ? 'recent' : 'low';
+      return { ...f, sort: next };
+    });
+  }
+  function toggleNearby() {
+    setFilters((f) => ({ ...f, nearbyOnly: !f.nearbyOnly }));
+  }
+  const priceSortState = filters.sort === 'low' ? 'low' : filters.sort === 'high' ? 'high' : 'off';
 
   // Pre-fill BuyPage location chip from the seller's saved profile address (if any).
   useEffect(() => {
@@ -156,8 +194,12 @@ export default function BuyPage() {
   const locationLabel = shortAddress(address);
 
   function pickCategory(k) {
-    if (k === 'other') openFilters('animal');
-    else setFilters((f) => ({ ...f, animal: f.animal === k ? 'all' : k }));
+    // All three tiles behave the same: tap to toggle the category filter.
+    // 'other' was previously a power-user shortcut into the premium sheet,
+    // but farmers expect it to just narrow the list to goat/sheep/chicken/pig.
+    // filtersToQuery already explodes `animal: 'other'` into a backend
+    // type-list — we only need to flip the value here.
+    setFilters((f) => ({ ...f, animal: f.animal === k ? 'all' : k }));
   }
 
   // Stat tiles already show "Lactation" / "ब्यांत" as the label, so the value
@@ -227,13 +269,66 @@ export default function BuyPage() {
           />
         </div> */}
 
-        <div className="flex items-center justify-between border-t border-surface-200 pt-3 -mx-1 px-1">
-          <p className="text-caption font-bold uppercase tracking-wider text-surface-500">
-            {tr('filter_all_animals_showing')}
+        <div className="flex items-center justify-between gap-2 border-t border-surface-200 pt-3 -mx-1 px-1">
+          {/* Short, single-line count. The previous "All animals showing · N"
+              copy was too long in Marathi/Hindi and crammed the right-side
+              filter pills. Just "{n} animals" reads at a glance and leaves
+              the pills room to breathe. */}
+          <p className="text-caption font-bold uppercase tracking-wider text-surface-500 truncate">
+            {tr('filter_animals_count', { n: filtered.length })}
           </p>
-          <p className="text-caption font-bold uppercase tracking-wider text-surface-500">
-            {filtered.length}
-          </p>
+
+          {/* Right-side controls. Quick-filter pills (price, nearby) are
+              icon + short label so a farmer reads them at a glance —
+              icon-only confused users (was: A↕Z = alphabetical sort, paper-plane
+              looked like a send button). The main filter icon is icon-only
+              since the symbol is already universally understood. */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={cyclePriceSort}
+              aria-label={tr('quick_filter_price_aria')}
+              aria-pressed={priceSortState !== 'off'}
+              className={`inline-flex items-center gap-1 h-10 px-2.5 rounded-2xl border text-[11px] font-bold transition-all active:scale-95
+                ${priceSortState !== 'off'
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
+                  : 'bg-surface-0 border-surface-200 text-surface-700 hover:bg-surface-50'}`}
+            >
+              <IndianRupee size={16} strokeWidth={2.5} />
+              <span>{tr('quick_filter_price_label')}</span>
+              {priceSortState === 'low' && <ArrowDown size={14} strokeWidth={2.75} />}
+              {priceSortState === 'high' && <ArrowUp size={14} strokeWidth={2.75} />}
+            </button>
+
+            <button
+              type="button"
+              onClick={toggleNearby}
+              aria-label={tr('quick_filter_nearby_aria')}
+              aria-pressed={filters.nearbyOnly}
+              className={`inline-flex items-center gap-1 h-10 px-2.5 rounded-2xl border text-[11px] font-bold transition-all active:scale-95
+                ${filters.nearbyOnly
+                  ? 'bg-primary-50 border-primary-300 text-primary-700'
+                  : 'bg-surface-0 border-surface-200 text-surface-700 hover:bg-surface-50'}`}
+            >
+              <MapPin size={16} strokeWidth={2.5} fill={filters.nearbyOnly ? 'currentColor' : 'none'} />
+              <span>{tr('quick_filter_nearby_label')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setFiltersFocus(null); setFiltersOpen(true); }}
+              aria-label={tr('filter_open_aria')}
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-surface-0 border border-surface-200 text-surface-700 hover:bg-surface-50 active:scale-95 transition-all"
+            >
+              <SlidersHorizontal size={18} strokeWidth={2.25} />
+              {anyFilterActive && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent-600 ring-2 ring-surface-0"
+                />
+              )}
+            </button>
+          </div>
         </div>
 
         {filtered.length === 0 ? (
